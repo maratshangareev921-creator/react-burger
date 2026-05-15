@@ -1,15 +1,43 @@
+.list {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Две колонки */
+  gap: 24px 8px; /* Отступы между карточками */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Сама карточка ингредиента */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Обертка для цены с иконкой */
+
+.price {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ограничение высоты всего блока со скроллом */
+
+.container {
+  height: 100%;
+  overflow-y: auto;
+}
+
 .burger_ingredients {
   display: flex;
   flex-direction: column;
-  max-width: 600px;
-  color: var(--text-primary-color);
-  font-family: 'Jet Brains Mono', serif;
 }
 
-.menu {
-  display: flex;
-  margin: 0;
-  padding: 0;
+.name {
+  max-width: 240px;
   text-align: center;
-  list-style-type: none;
 }

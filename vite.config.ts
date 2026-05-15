@@ -27,5 +27,12 @@ export default defineConfig({
   },
   server: {
     open: true,
+    proxy: {
+      '/api': {
+        target: 'https://new-stellarburgers.education-services.ru',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });
