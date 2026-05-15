@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { getIngredients } from '../../utils/ingredients.js';
+import { getIngredients } from '../../utils/burger-api.js';
 import { AppHeader } from '../app-header/app-header.jsx';
 import { BurgerConstructor } from '../burger-constructor/burger-constructor.jsx';
 import { BurgerIngredients } from '../burger-ingredients/burger-ingredients.jsx';

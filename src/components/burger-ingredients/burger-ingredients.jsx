@@ -42,7 +42,7 @@ export const BurgerIngredients = ({ ingredients }) => {
 
   return (
     <section className={styles.burger_ingredients}>
-      <div style={{ display: 'flex' }} className="mb-10">
+      <div className={`${styles.tabs} mb-10`}>
         <Tab value="bun" active={current === 'bun'} onClick={setCurrent}>
           Булки
         </Tab>

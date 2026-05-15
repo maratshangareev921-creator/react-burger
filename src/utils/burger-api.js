@@ -1,16 +1,10 @@
-const BASE_URL = 'nomoreparties.space';
-
 const checkResponse = (res) => {
   if (res.ok) {
     return res.json();
   }
-  return res.json().then((err) => Promise.reject(err));
-};
-
-const request = (endpoint, options) => {
-  return fetch(`${BASE_URL}${endpoint}`, options).then(checkResponse);
+  return Promise.reject(`Ошибка: ${res.status}`);
 };
 
 export const getIngredients = () => {
-  return request('/ingredients');
+  return fetch('/api/ingredients').then(checkResponse);
 };
