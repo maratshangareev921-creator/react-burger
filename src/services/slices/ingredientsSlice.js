@@ -1,14 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-import { getIngredients as fetchIngredientsApi } from '../../utils/burger-api';
+import { getIngredients as fetchingIngredientsApi } from '../../utils/burger-api';
 
 export const fetchIngredients = createAsyncThunk(
   'ingredients/fetchIngredients',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetchIngredientsApi();
+      const response = await fetchingIngredientsApi();
       return response.data;
     } catch (error) {
+      console.error('Критическая ошибка в санке:', error); // ДОБАВИТЬ ЭТУ СТРОКУ
       return rejectWithValue(error instanceof Error ? error.message : 'Ошибка загрузки');
     }
   }

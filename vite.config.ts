@@ -27,6 +27,7 @@ export default defineConfig({
         target: 'https://new-stellarburgers.education-services.ru',
         changeOrigin: true,
         secure: false,
+		rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

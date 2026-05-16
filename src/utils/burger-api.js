@@ -1,3 +1,5 @@
+import { BASE_URL } from './constants';
+
 const checkResponse = (res) => {
   if (res.ok) {
     return res.json();
@@ -6,5 +8,15 @@ const checkResponse = (res) => {
 };
 
 export const getIngredients = () => {
-  return fetch('/api/ingredients').then(checkResponse);
+  return fetch(BASE_URL + '/ingredients').then(checkResponse);
+};
+
+export const createOrderApi = (ingredientIds) => {
+  return fetch(BASE_URL + '/orders', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ingredients: ingredientIds }),
+  }).then(checkResponse);
 };
