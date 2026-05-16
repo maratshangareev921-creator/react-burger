@@ -5,3 +5,27 @@
   padding-bottom: 20px;
   color: var(--text-primary-color);
 }
+
+.ingredient_list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 440px; /* Ограничиваем высоту для появления скролла */
+  overflow-y: auto;
+}
+
+.element_wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.total_container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.price_wrapper {
+  display: flex;
+  align-items: center;
+}
