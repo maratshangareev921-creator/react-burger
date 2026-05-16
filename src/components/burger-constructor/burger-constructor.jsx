@@ -1,21 +1,12 @@
-import {
-  ConstructorElement,
-  CurrencyIcon,
-  Button,
-} from '@ya.praktikum/react-developer-burger-ui-components';
+import React from 'react';
+import { ConstructorElement, CurrencyIcon, Button } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useDrop } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  addConstructorItem,
-  clearConstructor,
-  selectTotalPrice,
-} from '../../services/slices/burgerConstructorSlice';
+import { addConstructorItem, clearConstructor, selectTotalPrice } from '../../services/slices/burgerConstructorSlice';
 import { createOrder, clearOrder } from '../../services/slices/orderSlice';
 import { Modal } from '../modal/modal';
 import { OrderDetails } from '../order-details/order-details';
 import { ConstructorItem } from './constructor-item';
-
 import styles from './burger-constructor.module.css';
 
 export const BurgerConstructor = () => {
@@ -52,25 +43,13 @@ export const BurgerConstructor = () => {
   };
 
   return (
-    <section
-      ref={dropTargetRef}
-      className={`${styles.burger_constructor} mt-25`}
-      style={{ minHeight: '400px' }}
-    >
+    <section ref={dropTargetRef} className={`${styles.burger_constructor} mt-25`} style={{ minHeight: '400px' }}>
       {bun ? (
         <div className="ml-8 mb-4">
-          <ConstructorElement
-            type="top"
-            isLocked={true}
-            text={`${bun.name} (верх)`}
-            price={bun.price}
-            thumbnail={bun.image}
-          />
+          <ConstructorElement type="top" isLocked={true} text={`${bun.name} (верх)`} price={bun.price} thumbnail={bun.image} />
         </div>
       ) : (
-        <div
-          className={`${styles.stub} ${styles.stub_top} ml-8 mb-4 text text_type_main-default`}
-        >
+        <div className={`${styles.stub} ${styles.stub_top} ml-8 mb-4 text text_type_main-default`}>
           Выберите булки
         </div>
       )}
@@ -81,9 +60,7 @@ export const BurgerConstructor = () => {
             <ConstructorItem key={item.constructorId} item={item} index={index} />
           ))
         ) : (
-          <div
-            className={`${styles.stub} ${styles.stub_middle} ml-8 text text_type_main-default`}
-          >
+          <div className={`${styles.stub} ${styles.stub_middle} ml-8 text text_type_main-default`}>
             Выберите начинки
           </div>
         )}
@@ -91,18 +68,10 @@ export const BurgerConstructor = () => {
 
       {bun ? (
         <div className="ml-8 mt-4">
-          <ConstructorElement
-            type="bottom"
-            isLocked={true}
-            text={`${bun.name} (низ)`}
-            price={bun.price}
-            thumbnail={bun.image}
-          />
+          <ConstructorElement type="bottom" isLocked={true} text={`${bun.name} (низ)`} price={bun.price} thumbnail={bun.image} />
         </div>
       ) : (
-        <div
-          className={`${styles.stub} ${styles.stub_bottom} ml-8 mt-4 text text_type_main-default`}
-        >
+        <div className={`${styles.stub} ${styles.stub_bottom} ml-8 mt-4 text text_type_main-default`}>
           Выберите булки
         </div>
       )}
@@ -112,22 +81,13 @@ export const BurgerConstructor = () => {
           <span className="text text_type_digits-medium mr-2">{totalPrice}</span>
           <CurrencyIcon type="primary" />
         </div>
-        <Button
-          htmlType="button"
-          type="primary"
-          size="large"
-          onClick={handleCheckout}
-          disabled={isLoading || !bun}
-        >
+        <Button htmlType="button" type="primary" size="large" onClick={handleCheckout} disabled={isLoading || !bun}>
           {isLoading ? 'Оформление...' : 'Оформить заказ'}
         </Button>
       </div>
 
       {error && (
-        <p
-          className="text text_type_main-default mt-4 text_color_error"
-          style={{ textAlign: 'right' }}
-        >
+        <p className="text text_type_main-default mt-4 text_color_error" style={{ textAlign: 'right' }}>
           Произошла ошибка при создании заказа: {error}
         </p>
       )}

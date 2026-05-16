@@ -1,19 +1,10 @@
-import {
-  Tab,
-  CurrencyIcon,
-  Counter,
-} from '@ya.praktikum/react-developer-burger-ui-components';
+import { Tab, CurrencyIcon, Counter } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useMemo, useRef, useState } from 'react';
 import { useDrag } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  setIngredient,
-  clearIngredient,
-} from '../../services/slices/ingredientDetailsSlice';
+import { setIngredient, clearIngredient } from '../../services/slices/ingredientDetailsSlice';
 import { IngredientDetails } from '../ingredient-details/ingredient-details';
 import { Modal } from '../modal/modal';
-
 import styles from './burger-ingredients.module.css';
 
 export const BurgerIngredients = () => {
@@ -45,40 +36,25 @@ export const BurgerIngredients = () => {
 
   const handleTabClick = (value) => {
     setCurrent(value);
-    if (
-      !containerRef.current ||
-      !bunRef.current ||
-      !sauceRef.current ||
-      !mainRef.current
-    )
-      return;
+    if (!containerRef.current || !bunRef.current || !sauceRef.current || !mainRef.current) return;
 
     const targetRef = { bun: bunRef, sauce: sauceRef, main: mainRef }[value];
     if (targetRef && targetRef.current) {
       const containerTop = containerRef.current.getBoundingClientRect().top;
       const targetTop = targetRef.current.getBoundingClientRect().top;
       const scrollTarget = containerRef.current.scrollTop + (targetTop - containerTop);
+      
       containerRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' });
     }
   };
 
   const handleScroll = () => {
-    if (
-      !containerRef.current ||
-      !bunRef.current ||
-      !sauceRef.current ||
-      !mainRef.current
-    )
-      return;
+    if (!containerRef.current || !bunRef.current || !sauceRef.current || !mainRef.current) return;
 
     const containerTop = containerRef.current.getBoundingClientRect().top;
     const bunDiff = Math.abs(bunRef.current.getBoundingClientRect().top - containerTop);
-    const sauceDiff = Math.abs(
-      sauceRef.current.getBoundingClientRect().top - containerTop
-    );
-    const mainDiff = Math.abs(
-      mainRef.current.getBoundingClientRect().top - containerTop
-    );
+    const sauceDiff = Math.abs(sauceRef.current.getBoundingClientRect().top - containerTop);
+    const mainDiff = Math.abs(mainRef.current.getBoundingClientRect().top - containerTop);
 
     if (bunDiff < sauceDiff && bunDiff < mainDiff) {
       setCurrent('bun');
@@ -118,10 +94,10 @@ export const BurgerIngredients = () => {
     const opacity = isDragging ? 0.4 : 1;
 
     return (
-      <li
-        ref={dragRef}
-        className={styles.card}
-        onClick={() => handleOpenModal(item)}
+      <li 
+        ref={dragRef} 
+        className={styles.card} 
+        onClick={() => handleOpenModal(item)} 
         style={{ opacity, cursor: 'grab' }}
       >
         {count > 0 && <Counter count={count} size="default" />}
@@ -149,9 +125,9 @@ export const BurgerIngredients = () => {
         </Tab>
       </div>
 
-      <div
-        className={`${styles.container} custom-scroll`}
-        ref={containerRef}
+      <div 
+        className={`${styles.container} custom-scroll`} 
+        ref={containerRef} 
         onScroll={handleScroll}
       >
         <h2 className="text text_type_main-medium mb-6" ref={bunRef}>
@@ -167,7 +143,7 @@ export const BurgerIngredients = () => {
           Соусы
         </h2>
         <ul className={`${styles.list} mb-10 ml-4 mr-4`}>
-          {sauces.map((item) => (
+          {caches && sauces.map((item) => (
             <IngredientCard key={item._id} item={item} />
           ))}
         </ul>
