@@ -1,11 +1,9 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { fetchIngredients } from '../../services/slices/ingredientsSlice.js';
 import { AppHeader } from '../app-header/app-header.jsx';
 import { BurgerConstructor } from '../burger-constructor/burger-constructor.jsx';
 import { BurgerIngredients } from '../burger-ingredients/burger-ingredients.jsx';
-
 import styles from './app.module.css';
 
 export const App = () => {
