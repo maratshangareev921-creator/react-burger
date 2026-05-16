@@ -5,3 +5,51 @@
   padding-bottom: 20px;
   color: var(--text-primary-color);
 }
+
+.ingredient_list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 440px; /* Ограничиваем высоту для появления скролла */
+  overflow-y: auto;
+}
+
+.element_wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.total_container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.price_wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.stub {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  height: 80px;
+  color: #f2f2f3;
+  background: #1c1c21;
+  border: 2px dashed #4c4c5d;
+}
+
+.stub_top {
+  border-radius: 40px 40px 10px 10px;
+}
+
+.stub_middle {
+  margin-bottom: 16px;
+  border-radius: 10px;
+}
+
+.stub_bottom {
+  border-radius: 10px 10px 40px 40px;
+}

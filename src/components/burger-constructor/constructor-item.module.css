@@ -1,0 +1,10 @@
+.element_wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.drag_handle {
+  display: flex;
+  align-items: center;
+  cursor: row-resize;
+}

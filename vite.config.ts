@@ -1,16 +1,11 @@
 import react from '@vitejs/plugin-react';
-// import { checker } from 'vite-plugin-checker';
 import readableClassnames from 'vite-plugin-readable-classnames';
 import sassDts from 'vite-plugin-sass-dts';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    // checker({
-    //   typescript: true,
-    // }),
     react(),
     readableClassnames(),
     sassDts({
@@ -27,5 +22,12 @@ export default defineConfig({
   },
   server: {
     open: true,
+    proxy: {
+      '/api': {
+        target: 'https://new-stellarburgers.education-services.ru',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });
