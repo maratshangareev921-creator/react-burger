@@ -1,69 +1,78 @@
-import {
-  ConstructorElement,
-  CurrencyIcon,
-  Button,
-  DragIcon,
-} from '@ya.praktikum/react-developer-burger-ui-components';
 import React from 'react';
-
+import { ConstructorElement, CurrencyIcon, Button } from '@ya.praktikum/react-developer-burger-ui-components';
+import { useDrop } from 'react-dnd';
+import { useDispatch, useSelector } from 'react-redux';
+import { addConstructorItem, clearConstructor, selectTotalPrice } from '../../services/slices/burgerConstructorSlice';
+import { createOrder, clearOrder } from '../../services/slices/orderSlice';
 import { Modal } from '../modal/modal';
 import { OrderDetails } from '../order-details/order-details';
-
+import { ConstructorItem } from './constructor-item';
 import styles from './burger-constructor.module.css';
 
-export const BurgerConstructor = ({ ingredients }) => {
-  const bun = ingredients.find((item) => item.type === 'bun');
-  const mainIngredients = ingredients.filter((item) => item.type !== 'bun');
+export const BurgerConstructor = () => {
+  const dispatch = useDispatch();
+  const { orderNumber, isLoading, error } = useSelector((state) => state.order);
+  const { bun, ingredients: mainIngredients } = useSelector(
+    (state) => state.burgerConstructor
+  );
+  const totalPrice = useSelector(selectTotalPrice);
 
-  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = React.useState(false);
+  const [, dropTargetRef] = useDrop({
+    accept: 'ingredient',
+    drop(item) {
+      dispatch(addConstructorItem(item));
+    },
+  });
 
-  const totalPrice = React.useMemo(() => {
-    const mainPrice = mainIngredients.reduce((prev, item) => prev + item.price, 0);
-    const bunPrice = bun ? bun.price * 2 : 0;
-    return mainPrice + bunPrice;
-  }, [bun, mainIngredients]);
+  const handleCheckout = () => {
+    if (!bun) return;
+    const orderIngredients = [
+      bun._id,
+      ...mainIngredients.map((item) => item._id),
+      bun._id,
+    ];
+    dispatch(createOrder(orderIngredients)).then((action) => {
+      if (createOrder.fulfilled.match(action)) {
+        dispatch(clearConstructor());
+      }
+    });
+  };
 
-  const handleOpenModal = () => setIsOrderDetailsOpen(true);
-  const handleCloseModal = () => setIsOrderDetailsOpen(false);
+  const handleCloseModal = () => {
+    dispatch(clearOrder());
+  };
 
   return (
-    <section className={`${styles.burger_constructor} mt-25`}>
-      {bun && (
+    <section ref={dropTargetRef} className={`${styles.burger_constructor} mt-25`} style={{ minHeight: '400px' }}>
+      {bun ? (
         <div className="ml-8 mb-4">
-          <ConstructorElement
-            type="top"
-            isLocked={true}
-            text={`${bun.name} (верх)`}
-            price={bun.price}
-            thumbnail={bun.image}
-          />
+          <ConstructorElement type="top" isLocked={true} text={`${bun.name} (верх)`} price={bun.price} thumbnail={bun.image} />
+        </div>
+      ) : (
+        <div className={`${styles.stub} ${styles.stub_top} ml-8 mb-4 text text_type_main-default`}>
+          Выберите булки
         </div>
       )}
 
       <div className={`${styles.ingredient_list} custom-scroll`}>
-        {mainIngredients.map((item) => (
-          <div key={item._id} className={`${styles.element_wrapper} mb-4 ml-4`}>
-            <div className="mr-2">
-              <DragIcon type="primary" />
-            </div>
-            <ConstructorElement
-              text={item.name}
-              price={item.price}
-              thumbnail={item.image}
-            />
+        {mainIngredients.length > 0 ? (
+          mainIngredients.map((item, index) => (
+            <ConstructorItem key={item.constructorId} item={item} index={index} />
+          ))
+        ) : (
+          <div className={`${styles.stub} ${styles.stub_middle} ml-8 text text_type_main-default`}>
+            Выберите начинки
           </div>
-        ))}
+        )}
       </div>
 
-      {bun && (
+      {bun ? (
         <div className="ml-8 mt-4">
-          <ConstructorElement
-            type="bottom"
-            isLocked={true}
-            text={`${bun.name} (низ)`}
-            price={bun.price}
-            thumbnail={bun.image}
-          />
+          <ConstructorElement type="bottom" isLocked={true} text={`${bun.name} (низ)`} price={bun.price} thumbnail={bun.image} />
+        </div>
+      ) : (
+        <div className={`${styles.stub} ${styles.stub_bottom} ml-8 mt-4 text text_type_main-default`}>
+          Выберите булки
         </div>
       )}
 
@@ -72,12 +81,18 @@ export const BurgerConstructor = ({ ingredients }) => {
           <span className="text text_type_digits-medium mr-2">{totalPrice}</span>
           <CurrencyIcon type="primary" />
         </div>
-        <Button htmlType="button" type="primary" size="large" onClick={handleOpenModal}>
-          Оформить заказ
+        <Button htmlType="button" type="primary" size="large" onClick={handleCheckout} disabled={isLoading || !bun}>
+          {isLoading ? 'Оформление...' : 'Оформить заказ'}
         </Button>
       </div>
 
-      {isOrderDetailsOpen && (
+      {error && (
+        <p className="text text_type_main-default mt-4 text_color_error" style={{ textAlign: 'right' }}>
+          Произошла ошибка при создании заказа: {error}
+        </p>
+      )}
+
+      {orderNumber && (
         <Modal onClose={handleCloseModal}>
           <OrderDetails />
         </Modal>
