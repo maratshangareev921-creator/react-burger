@@ -4,19 +4,58 @@
   width: 600px;
   padding-bottom: 20px;
   color: var(--text-primary-color);
+  transition: opacity 0.15s ease;
+}
+
+.drop_hover {
+  opacity: 0.78;
 }
 
 .ingredient_list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 440px; /* Ограничиваем высоту для появления скролла */
+  max-height: 440px;
+  margin: 0;
+  padding: 0;
   overflow-y: auto;
+  list-style: none;
 }
 
 .element_wrapper {
   display: flex;
   align-items: center;
+}
+
+.dragging {
+  opacity: 0.4;
+}
+
+.hover {
+  outline: 1px solid var(--colors-interface-accent);
+}
+
+.placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 536px;
+  min-height: 80px;
+  margin-left: 32px;
+  background-color: var(--background-element);
+}
+
+.placeholder_top {
+  border-radius: var(--top-constructor-item-border-radius);
+}
+
+.placeholder_middle {
+  min-height: 240px;
+  border-radius: var(--common-border-radius-s);
+}
+
+.placeholder_bottom {
+  border-radius: var(--bottom-constructor-item-border-radius);
 }
 
 .total_container {
