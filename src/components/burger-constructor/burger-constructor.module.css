@@ -4,11 +4,6 @@
   width: 600px;
   padding-bottom: 20px;
   color: var(--text-primary-color);
-  transition: opacity 0.15s ease;
-}
-
-.drop_hover {
-  opacity: 0.78;
 }
 
 .ingredient_list {
@@ -16,46 +11,12 @@
   flex-direction: column;
   gap: 10px;
   max-height: 440px;
-  margin: 0;
-  padding: 0;
   overflow-y: auto;
-  list-style: none;
 }
 
 .element_wrapper {
   display: flex;
   align-items: center;
-}
-
-.dragging {
-  opacity: 0.4;
-}
-
-.hover {
-  outline: 1px solid var(--colors-interface-accent);
-}
-
-.placeholder {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 536px;
-  min-height: 80px;
-  margin-left: 32px;
-  background-color: var(--background-element);
-}
-
-.placeholder_top {
-  border-radius: var(--top-constructor-item-border-radius);
-}
-
-.placeholder_middle {
-  min-height: 240px;
-  border-radius: var(--common-border-radius-s);
-}
-
-.placeholder_bottom {
-  border-radius: var(--bottom-constructor-item-border-radius);
 }
 
 .total_container {
@@ -67,4 +28,28 @@
 .price_wrapper {
   display: flex;
   align-items: center;
+}
+
+.stub {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  height: 80px;
+  color: #f2f2f3;
+  background: #1c1c21;
+  border: 2px dashed #4c4c5d;
+}
+
+.stub_top {
+  border-radius: 40px 40px 10px 10px;
+}
+
+.stub_middle {
+  margin-bottom: 16px;
+  border-radius: 10px;
+}
+
+.stub_bottom {
+  border-radius: 10px 10px 40px 40px;
 }

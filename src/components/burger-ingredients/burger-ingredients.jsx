@@ -3,117 +3,138 @@ import {
   CurrencyIcon,
   Counter,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import React, { useEffect, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useDrag } from 'react-dnd';
-import { Link, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+
+import {
+  setIngredient,
+  clearIngredient,
+} from '../../services/slices/ingredientDetailsSlice';
+import { IngredientDetails } from '../ingredient-details/ingredient-details';
+import { Modal } from '../modal/modal';
 
 import styles from './burger-ingredients.module.css';
 
-const SECTION_REFS = {
-  bun: 'bunsRef',
-  sauce: 'saucesRef',
-  main: 'mainsRef',
-};
+export const BurgerIngredients = () => {
+  const dispatch = useDispatch();
+  const { ingredients } = useSelector((state) => state.ingredients);
+  const selectedIngredient = useSelector((state) => state.ingredientDetails.ingredient);
+  const { bun, ingredients: constructorIngredients } = useSelector(
+    (state) => state.burgerConstructor
+  );
 
-const IngredientCard = ({ item, count, location, onDragIntentStart }) => {
-  const [{ isDragging }, dragRef] = useDrag({
-    type: 'ingredient',
-    item,
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
+  const [current, setCurrent] = useState('bun');
+  const containerRef = useRef(null);
+  const bunRef = useRef(null);
+  const sauceRef = useRef(null);
+  const mainRef = useRef(null);
 
-  return (
-    <li
-      ref={dragRef}
-      draggable
-      onMouseDown={() => onDragIntentStart(item)}
-      onDragStart={(event) => {
-        const payload = JSON.stringify({ kind: 'ingredient', ingredient: item });
-        event.dataTransfer.setData('application/json', payload);
-        event.dataTransfer.setData('text/plain', payload);
-      }}
-      className={`${styles.card} ${isDragging ? styles.card_dragging : ''}`}
-    >
-      <Link
-        className={styles.card_link}
-        to={`/ingredients/${item._id}`}
-        state={{ background: location }}
-        draggable={false}
+  const buns = useMemo(
+    () => ingredients.filter((item) => item.type === 'bun'),
+    [ingredients]
+  );
+  const sauces = useMemo(
+    () => ingredients.filter((item) => item.type === 'sauce'),
+    [ingredients]
+  );
+  const mains = useMemo(
+    () => ingredients.filter((item) => item.type === 'main'),
+    [ingredients]
+  );
+
+  const handleTabClick = (value) => {
+    setCurrent(value);
+    if (
+      !containerRef.current ||
+      !bunRef.current ||
+      !sauceRef.current ||
+      !mainRef.current
+    )
+      return;
+
+    const targetRef = { bun: bunRef, sauce: sauceRef, main: mainRef }[value];
+    if (targetRef && targetRef.current) {
+      const containerTop = containerRef.current.getBoundingClientRect().top;
+      const targetTop = targetRef.current.getBoundingClientRect().top;
+      const scrollTarget = containerRef.current.scrollTop + (targetTop - containerTop);
+
+      containerRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+    }
+  };
+
+  const handleScroll = () => {
+    if (
+      !containerRef.current ||
+      !bunRef.current ||
+      !sauceRef.current ||
+      !mainRef.current
+    )
+      return;
+
+    const containerTop = containerRef.current.getBoundingClientRect().top;
+    const bunDiff = Math.abs(bunRef.current.getBoundingClientRect().top - containerTop);
+    const sauceDiff = Math.abs(
+      sauceRef.current.getBoundingClientRect().top - containerTop
+    );
+    const mainDiff = Math.abs(
+      mainRef.current.getBoundingClientRect().top - containerTop
+    );
+
+    if (bunDiff < sauceDiff && bunDiff < mainDiff) {
+      setCurrent('bun');
+    } else if (sauceDiff < bunDiff && sauceDiff < mainDiff) {
+      setCurrent('sauce');
+    } else {
+      setCurrent('main');
+    }
+  };
+
+  const handleOpenModal = (ingredient) => {
+    dispatch(setIngredient(ingredient));
+  };
+
+  const handleCloseModal = () => {
+    dispatch(clearIngredient());
+  };
+
+  const IngredientCard = ({ item }) => {
+    const [{ isDragging }, dragRef] = useDrag({
+      type: 'ingredient',
+      item: item,
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    });
+
+    const count = useMemo(() => {
+      if (item.type === 'bun') {
+        return bun && bun._id === item._id ? 2 : 0;
+      }
+      return constructorIngredients.filter(
+        (constructorItem) => constructorItem._id === item._id
+      ).length;
+    }, [item]);
+
+    const opacity = isDragging ? 0.4 : 1;
+
+    return (
+      <li
+        ref={dragRef}
+        className={styles.card}
+        onClick={() => handleOpenModal(item)}
+        style={{ opacity, cursor: 'grab' }}
       >
         {count > 0 && <Counter count={count} size="default" />}
-        <img src={item.image} alt={item.name} className="ml-4 mr-4" draggable={false} />
+        <img src={item.image} alt={item.name} className="ml-4 mr-4" />
         <div className={`${styles.price} mt-1 mb-1`}>
           <span className="text text_type_digits-default mr-2">{item.price}</span>
           <CurrencyIcon type="primary" />
         </div>
         <p className={`${styles.name} text text_type_main-default`}>{item.name}</p>
-      </Link>
-    </li>
-  );
-};
-
-export const BurgerIngredients = ({ ingredients, counts = {}, onDragIntentStart }) => {
-  const [current, setCurrent] = React.useState('bun');
-  const location = useLocation();
-  const containerRef = useRef(null);
-  const bunsRef = useRef(null);
-  const saucesRef = useRef(null);
-  const mainsRef = useRef(null);
-  const refs = { bunsRef, saucesRef, mainsRef };
-
-  const buns = ingredients.filter((item) => item.type === 'bun');
-  const sauces = ingredients.filter((item) => item.type === 'sauce');
-  const mains = ingredients.filter((item) => item.type === 'main');
-
-  const handleTabClick = (value) => {
-    setCurrent(value);
-    refs[SECTION_REFS[value]].current?.scrollIntoView({ behavior: 'smooth' });
+      </li>
+    );
   };
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return undefined;
-
-    const handleScroll = () => {
-      const containerTop = container.getBoundingClientRect().top;
-      const sections = [
-        { value: 'bun', ref: bunsRef },
-        { value: 'sauce', ref: saucesRef },
-        { value: 'main', ref: mainsRef },
-      ];
-
-      const closest = sections.reduce(
-        (nearest, section) => {
-          const distance = Math.abs(
-            section.ref.current.getBoundingClientRect().top - containerTop
-          );
-
-          return distance < nearest.distance
-            ? { value: section.value, distance }
-            : nearest;
-        },
-        { value: 'bun', distance: Infinity }
-      );
-
-      setCurrent(closest.value);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const renderCards = (items) =>
-    items.map((item) => (
-      <IngredientCard
-        key={item._id}
-        item={item}
-        count={counts[item._id] || 0}
-        location={location}
-        onDragIntentStart={onDragIntentStart}
-      />
-    ));
 
   return (
     <section className={styles.burger_ingredients}>
@@ -129,22 +150,44 @@ export const BurgerIngredients = ({ ingredients, counts = {}, onDragIntentStart 
         </Tab>
       </div>
 
-      <div ref={containerRef} className={`${styles.container} custom-scroll`}>
-        <h2 ref={bunsRef} className="text text_type_main-medium mb-6">
+      <div
+        className={`${styles.container} custom-scroll`}
+        ref={containerRef}
+        onScroll={handleScroll}
+      >
+        <h2 className="text text_type_main-medium mb-6" ref={bunRef}>
           Булки
         </h2>
-        <ul className={`${styles.list} mb-10 ml-4 mr-4`}>{renderCards(buns)}</ul>
+        <ul className={`${styles.list} mb-10 ml-4 mr-4`}>
+          {buns.map((item) => (
+            <IngredientCard key={item._id} item={item} />
+          ))}
+        </ul>
 
-        <h2 ref={saucesRef} className="text text_type_main-medium mb-6">
+        <h2 className="text text_type_main-medium mb-6" ref={sauceRef}>
           Соусы
         </h2>
-        <ul className={`${styles.list} mb-10 ml-4 mr-4`}>{renderCards(sauces)}</ul>
+        <ul className={`${styles.list} mb-10 ml-4 mr-4`}>
+          {sauces.map((item) => (
+            <IngredientCard key={item._id} item={item} />
+          ))}
+        </ul>
 
-        <h2 ref={mainsRef} className="text text_type_main-medium mb-6">
+        <h2 className="text text_type_main-medium mb-6" ref={mainRef}>
           Начинки
         </h2>
-        <ul className={`${styles.list} mb-10 ml-4 mr-4`}>{renderCards(mains)}</ul>
+        <ul className={`${styles.list} mb-10 ml-4 mr-4`}>
+          {mains.map((item) => (
+            <IngredientCard key={item._id} item={item} />
+          ))}
+        </ul>
       </div>
+
+      {selectedIngredient && (
+        <Modal title="Детали ингредиента" onClose={handleCloseModal}>
+          <IngredientDetails />
+        </Modal>
+      )}
     </section>
   );
 };
