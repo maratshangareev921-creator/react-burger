@@ -5,13 +5,15 @@ import {
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useDrop } from 'react-dnd';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+import { createOrder } from '../../services/actions/orderActions';
 import {
   addConstructorItem,
   clearConstructor,
   selectTotalPrice,
 } from '../../services/slices/burgerConstructorSlice';
-import { createOrder, clearOrder } from '../../services/slices/orderSlice';
+import { clearOrder } from '../../services/slices/orderSlice';
 import { Modal } from '../modal/modal';
 import { OrderDetails } from '../order-details/order-details';
 import { ConstructorItem } from './constructor-item';
@@ -20,6 +22,8 @@ import styles from './burger-constructor.module.css';
 
 export const BurgerConstructor = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { orderNumber, isLoading, error } = useSelector((state) => state.order);
   const { bun, ingredients: mainIngredients } = useSelector(
     (state) => state.burgerConstructor
@@ -35,6 +39,12 @@ export const BurgerConstructor = () => {
 
   const handleCheckout = () => {
     if (!bun) return;
+
+    if (!localStorage.getItem('accessToken')) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
     const orderIngredients = [
       bun._id,
       ...mainIngredients.map((item) => item._id),

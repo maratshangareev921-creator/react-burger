@@ -4,15 +4,20 @@ import {
   PasswordInput,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useEffect, useMemo, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { NavLink, Outlet, useOutletContext } from 'react-router-dom';
 
-import { logoutUser, updateUser } from '../utils/burger-api.js';
+import { logout, updateProfile } from '../services/actions/userActions.js';
 
 import styles from './pages.module.css';
 
-export const ProfileLayout = ({ onLogout, user }) => {
+const getErrorMessage = (err) => (err instanceof Error ? err.message : String(err));
+
+export const ProfileLayout = ({ user }) => {
+  const dispatch = useDispatch();
+
   const handleLogout = () => {
-    logoutUser().finally(onLogout);
+    dispatch(logout());
   };
 
   return (
@@ -22,7 +27,9 @@ export const ProfileLayout = ({ onLogout, user }) => {
           to="/profile"
           end
           className={({ isActive }) =>
-            `${styles.profileLink} ${isActive ? styles.profileLinkActive : ''}`
+            `${styles.profileLink} text text_type_main-medium ${
+              isActive ? styles.profileLinkActive : ''
+            }`
           }
         >
           Профиль
@@ -30,12 +37,18 @@ export const ProfileLayout = ({ onLogout, user }) => {
         <NavLink
           to="/profile/orders"
           className={({ isActive }) =>
-            `${styles.profileLink} ${isActive ? styles.profileLinkActive : ''}`
+            `${styles.profileLink} text text_type_main-medium ${
+              isActive ? styles.profileLinkActive : ''
+            }`
           }
         >
           История заказов
         </NavLink>
-        <button className={styles.logoutButton} type="button" onClick={handleLogout}>
+        <button
+          className={`${styles.logoutButton} text text_type_main-medium`}
+          type="button"
+          onClick={handleLogout}
+        >
           Выход
         </button>
         <p className="text text_type_main-default text_color_inactive mt-20">
@@ -47,7 +60,8 @@ export const ProfileLayout = ({ onLogout, user }) => {
   );
 };
 
-export const ProfileForm = ({ onUserChange }) => {
+export const ProfileForm = () => {
+  const dispatch = useDispatch();
   const { user } = useOutletContext();
   const initialForm = useMemo(
     () => ({
@@ -83,12 +97,12 @@ export const ProfileForm = ({ onUserChange }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSending(true);
-    updateUser(form)
-      .then((data) => {
-        onUserChange(data.user);
-        setForm({ name: data.user.name, email: data.user.email, password: '' });
+    dispatch(updateProfile(form))
+      .unwrap()
+      .then((updatedUser) => {
+        setForm({ name: updatedUser.name, email: updatedUser.email, password: '' });
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setIsSending(false));
   };
 

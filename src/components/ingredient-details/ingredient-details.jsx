@@ -2,8 +2,9 @@ import { useSelector } from 'react-redux';
 
 import styles from './ingredient-details.module.css';
 
-export const IngredientDetails = () => {
-  const ingredient = useSelector((state) => state.ingredientDetails.ingredient);
+export const IngredientDetails = ({ ingredient: ingredientProp }) => {
+  const selectedIngredient = useSelector((state) => state.ingredientDetails.ingredient);
+  const ingredient = ingredientProp || selectedIngredient;
 
   if (!ingredient) return null;
 

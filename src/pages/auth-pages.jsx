@@ -5,14 +5,15 @@ import {
   PasswordInput,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import {
-  forgotPassword,
-  loginUser,
-  registerUser,
-  resetPassword,
-} from '../utils/burger-api.js';
+  forgotPasswordRequest,
+  login,
+  register,
+  resetPasswordRequest,
+} from '../services/actions/userActions.js';
 
 import styles from './pages.module.css';
 
@@ -25,7 +26,10 @@ const AuthMessage = ({ children }) => (
 const ErrorText = ({ error }) =>
   error ? <p className="text text_type_main-default text_color_error">{error}</p> : null;
 
-export const LoginPage = ({ onLogin }) => {
+const getErrorMessage = (err) => (err instanceof Error ? err.message : String(err));
+
+export const LoginPage = () => {
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -41,12 +45,12 @@ export const LoginPage = ({ onLogin }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSending(true);
-    loginUser(form)
-      .then((data) => {
-        onLogin(data.user);
+    dispatch(login(form))
+      .unwrap()
+      .then(() => {
         navigate(from, { replace: true });
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setIsSending(false));
   };
 
@@ -73,7 +77,8 @@ export const LoginPage = ({ onLogin }) => {
   );
 };
 
-export const RegisterPage = ({ onLogin }) => {
+export const RegisterPage = () => {
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -86,9 +91,9 @@ export const RegisterPage = ({ onLogin }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSending(true);
-    registerUser(form)
-      .then((data) => onLogin(data.user))
-      .catch((err) => setError(err.message))
+    dispatch(register(form))
+      .unwrap()
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setIsSending(false));
   };
 
@@ -114,6 +119,7 @@ export const RegisterPage = ({ onLogin }) => {
 };
 
 export const ForgotPasswordPage = () => {
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -122,12 +128,13 @@ export const ForgotPasswordPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSending(true);
-    forgotPassword(email)
+    dispatch(forgotPasswordRequest(email))
+      .unwrap()
       .then(() => {
         localStorage.setItem('resetPasswordAllowed', 'true');
         navigate('/reset-password');
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setIsSending(false));
   };
 
@@ -159,6 +166,7 @@ export const ForgotPasswordPage = () => {
 };
 
 export const ResetPasswordPage = () => {
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ password: '', token: '' });
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -176,12 +184,13 @@ export const ResetPasswordPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSending(true);
-    resetPassword(form)
+    dispatch(resetPasswordRequest(form))
+      .unwrap()
       .then(() => {
         localStorage.removeItem('resetPasswordAllowed');
         navigate('/login', { replace: true });
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setIsSending(false));
   };
 

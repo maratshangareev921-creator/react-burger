@@ -16,13 +16,13 @@ export const getIngredients = () => {
 };
 
 export const createOrderApi = (ingredientIds) => {
-  return fetch(BASE_URL + '/orders', {
+  return requestWithRefresh('/orders', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ ingredients: ingredientIds }),
-  }).then(checkResponse);
+  });
 };
 
 const jsonHeaders = {
@@ -44,7 +44,7 @@ const clearTokens = () => {
 };
 
 const request = (endpoint, options = {}) => {
-  return fetch(`/api${endpoint}`, options).then(checkResponse);
+  return fetch(`${BASE_URL}${endpoint}`, options).then(checkResponse);
 };
 
 export const refreshAccessToken = () => {

@@ -1,29 +1,63 @@
 import {
-  Tab,
-  CurrencyIcon,
   Counter,
+  CurrencyIcon,
+  Tab,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useMemo, useRef, useState } from 'react';
 import { useDrag } from 'react-dnd';
-import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  setIngredient,
-  clearIngredient,
-} from '../../services/slices/ingredientDetailsSlice';
-import { IngredientDetails } from '../ingredient-details/ingredient-details';
-import { Modal } from '../modal/modal';
+import { useSelector } from 'react-redux';
+import { Link, useLocation } from 'react-router-dom';
 
 import styles from './burger-ingredients.module.css';
 
-export const BurgerIngredients = () => {
-  const dispatch = useDispatch();
-  const { ingredients } = useSelector((state) => state.ingredients);
-  const selectedIngredient = useSelector((state) => state.ingredientDetails.ingredient);
+const IngredientCard = ({ item }) => {
+  const location = useLocation();
   const { bun, ingredients: constructorIngredients } = useSelector(
     (state) => state.burgerConstructor
   );
+  const [{ isDragging }, dragRef] = useDrag({
+    type: 'ingredient',
+    item,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
 
+  const count = useMemo(() => {
+    if (item.type === 'bun') {
+      return bun && bun._id === item._id ? 2 : 0;
+    }
+
+    return constructorIngredients.filter(
+      (constructorItem) => constructorItem._id === item._id
+    ).length;
+  }, [bun, constructorIngredients, item]);
+
+  return (
+    <li
+      ref={dragRef}
+      className={styles.card}
+      style={{ opacity: isDragging ? 0.4 : 1, cursor: 'grab' }}
+    >
+      <Link
+        to={`/ingredients/${item._id}`}
+        state={{ background: location }}
+        className={styles.card_link}
+      >
+        {count > 0 && <Counter count={count} size="default" />}
+        <img src={item.image} alt={item.name} className="ml-4 mr-4" />
+        <div className={`${styles.price} mt-1 mb-1`}>
+          <span className="text text_type_digits-default mr-2">{item.price}</span>
+          <CurrencyIcon type="primary" />
+        </div>
+        <p className={`${styles.name} text text_type_main-default`}>{item.name}</p>
+      </Link>
+    </li>
+  );
+};
+
+export const BurgerIngredients = () => {
+  const { ingredients } = useSelector((state) => state.ingredients);
   const [current, setCurrent] = useState('bun');
   const containerRef = useRef(null);
   const bunRef = useRef(null);
@@ -50,11 +84,12 @@ export const BurgerIngredients = () => {
       !bunRef.current ||
       !sauceRef.current ||
       !mainRef.current
-    )
+    ) {
       return;
+    }
 
     const targetRef = { bun: bunRef, sauce: sauceRef, main: mainRef }[value];
-    if (targetRef && targetRef.current) {
+    if (targetRef?.current) {
       const containerTop = containerRef.current.getBoundingClientRect().top;
       const targetTop = targetRef.current.getBoundingClientRect().top;
       const scrollTarget = containerRef.current.scrollTop + (targetTop - containerTop);
@@ -69,8 +104,9 @@ export const BurgerIngredients = () => {
       !bunRef.current ||
       !sauceRef.current ||
       !mainRef.current
-    )
+    ) {
       return;
+    }
 
     const containerTop = containerRef.current.getBoundingClientRect().top;
     const bunDiff = Math.abs(bunRef.current.getBoundingClientRect().top - containerTop);
@@ -88,52 +124,6 @@ export const BurgerIngredients = () => {
     } else {
       setCurrent('main');
     }
-  };
-
-  const handleOpenModal = (ingredient) => {
-    dispatch(setIngredient(ingredient));
-  };
-
-  const handleCloseModal = () => {
-    dispatch(clearIngredient());
-  };
-
-  const IngredientCard = ({ item }) => {
-    const [{ isDragging }, dragRef] = useDrag({
-      type: 'ingredient',
-      item: item,
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-    });
-
-    const count = useMemo(() => {
-      if (item.type === 'bun') {
-        return bun && bun._id === item._id ? 2 : 0;
-      }
-      return constructorIngredients.filter(
-        (constructorItem) => constructorItem._id === item._id
-      ).length;
-    }, [item]);
-
-    const opacity = isDragging ? 0.4 : 1;
-
-    return (
-      <li
-        ref={dragRef}
-        className={styles.card}
-        onClick={() => handleOpenModal(item)}
-        style={{ opacity, cursor: 'grab' }}
-      >
-        {count > 0 && <Counter count={count} size="default" />}
-        <img src={item.image} alt={item.name} className="ml-4 mr-4" />
-        <div className={`${styles.price} mt-1 mb-1`}>
-          <span className="text text_type_digits-default mr-2">{item.price}</span>
-          <CurrencyIcon type="primary" />
-        </div>
-        <p className={`${styles.name} text text_type_main-default`}>{item.name}</p>
-      </li>
-    );
   };
 
   return (
@@ -182,12 +172,6 @@ export const BurgerIngredients = () => {
           ))}
         </ul>
       </div>
-
-      {selectedIngredient && (
-        <Modal title="Детали ингредиента" onClose={handleCloseModal}>
-          <IngredientDetails />
-        </Modal>
-      )}
     </section>
   );
 };
