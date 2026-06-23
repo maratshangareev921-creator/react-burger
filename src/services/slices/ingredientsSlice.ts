@@ -2,7 +2,15 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { fetchIngredients } from '../actions/ingredientsActions';
 
-const initialState = {
+import type { Ingredient } from '../../types';
+
+type IngredientsState = {
+  ingredients: Ingredient[];
+  isLoading: boolean;
+  hasError: boolean;
+};
+
+const initialState: IngredientsState = {
   ingredients: [],
   isLoading: false,
   hasError: false,

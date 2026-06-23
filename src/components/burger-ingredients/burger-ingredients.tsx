@@ -3,39 +3,40 @@ import {
   CurrencyIcon,
   Tab,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ReactElement } from 'react';
 import { useDrag } from 'react-dnd';
-import { useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
+
+import { useAppSelector } from '../../services/hooks';
+
+import type { Ingredient, IngredientType } from '../../types';
 
 import styles from './burger-ingredients.module.css';
 
-const IngredientCard = ({ item }) => {
+type IngredientCardProps = { item: Ingredient };
+type DragCollectedProps = { isDragging: boolean };
+
+const IngredientCard = ({ item }: IngredientCardProps): ReactElement => {
   const location = useLocation();
-  const { bun, ingredients: constructorIngredients } = useSelector(
+  const { bun, ingredients: constructorIngredients } = useAppSelector(
     (state) => state.burgerConstructor
   );
-  const [{ isDragging }, dragRef] = useDrag({
+  const [{ isDragging }, dragRef] = useDrag<Ingredient, void, DragCollectedProps>({
     type: 'ingredient',
     item,
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
+    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   });
 
   const count = useMemo(() => {
-    if (item.type === 'bun') {
-      return bun && bun._id === item._id ? 2 : 0;
-    }
-
-    return constructorIngredients.filter(
-      (constructorItem) => constructorItem._id === item._id
-    ).length;
+    if (item.type === 'bun') return bun?._id === item._id ? 2 : 0;
+    return constructorIngredients.filter(({ _id }) => _id === item._id).length;
   }, [bun, constructorIngredients, item]);
 
   return (
     <li
-      ref={dragRef}
+      ref={(node) => {
+        dragRef(node);
+      }}
       className={styles.card}
       style={{ opacity: isDragging ? 0.4 : 1, cursor: 'grab' }}
     >
@@ -56,13 +57,16 @@ const IngredientCard = ({ item }) => {
   );
 };
 
-export const BurgerIngredients = () => {
-  const { ingredients } = useSelector((state) => state.ingredients);
-  const [current, setCurrent] = useState('bun');
-  const containerRef = useRef(null);
-  const bunRef = useRef(null);
-  const sauceRef = useRef(null);
-  const mainRef = useRef(null);
+const isIngredientType = (value: string): value is IngredientType =>
+  value === 'bun' || value === 'sauce' || value === 'main';
+
+export const BurgerIngredients = (): ReactElement => {
+  const { ingredients } = useAppSelector((state) => state.ingredients);
+  const [current, setCurrent] = useState<IngredientType>('bun');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bunRef = useRef<HTMLHeadingElement>(null);
+  const sauceRef = useRef<HTMLHeadingElement>(null);
+  const mainRef = useRef<HTMLHeadingElement>(null);
 
   const buns = useMemo(
     () => ingredients.filter((item) => item.type === 'bun'),
@@ -77,53 +81,41 @@ export const BurgerIngredients = () => {
     [ingredients]
   );
 
-  const handleTabClick = (value) => {
+  const handleTabClick = (value: string): void => {
+    if (!isIngredientType(value)) return;
     setCurrent(value);
-    if (
-      !containerRef.current ||
-      !bunRef.current ||
-      !sauceRef.current ||
-      !mainRef.current
-    ) {
-      return;
-    }
 
-    const targetRef = { bun: bunRef, sauce: sauceRef, main: mainRef }[value];
-    if (targetRef?.current) {
-      const containerTop = containerRef.current.getBoundingClientRect().top;
-      const targetTop = targetRef.current.getBoundingClientRect().top;
-      const scrollTarget = containerRef.current.scrollTop + (targetTop - containerTop);
+    const container = containerRef.current;
+    const target = {
+      bun: bunRef.current,
+      sauce: sauceRef.current,
+      main: mainRef.current,
+    }[value];
+    if (!container || !target) return;
 
-      containerRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-    }
+    const scrollTarget =
+      container.scrollTop +
+      (target.getBoundingClientRect().top - container.getBoundingClientRect().top);
+    container.scrollTo({ top: scrollTarget, behavior: 'smooth' });
   };
 
-  const handleScroll = () => {
-    if (
-      !containerRef.current ||
-      !bunRef.current ||
-      !sauceRef.current ||
-      !mainRef.current
-    ) {
-      return;
-    }
+  const handleScroll = (): void => {
+    const container = containerRef.current;
+    const bun = bunRef.current;
+    const sauce = sauceRef.current;
+    const main = mainRef.current;
+    if (!container || !bun || !sauce || !main) return;
 
-    const containerTop = containerRef.current.getBoundingClientRect().top;
-    const bunDiff = Math.abs(bunRef.current.getBoundingClientRect().top - containerTop);
-    const sauceDiff = Math.abs(
-      sauceRef.current.getBoundingClientRect().top - containerTop
+    const containerTop = container.getBoundingClientRect().top;
+    const distances: Record<IngredientType, number> = {
+      bun: Math.abs(bun.getBoundingClientRect().top - containerTop),
+      sauce: Math.abs(sauce.getBoundingClientRect().top - containerTop),
+      main: Math.abs(main.getBoundingClientRect().top - containerTop),
+    };
+    const closest = (Object.keys(distances) as IngredientType[]).reduce((a, b) =>
+      distances[a] < distances[b] ? a : b
     );
-    const mainDiff = Math.abs(
-      mainRef.current.getBoundingClientRect().top - containerTop
-    );
-
-    if (bunDiff < sauceDiff && bunDiff < mainDiff) {
-      setCurrent('bun');
-    } else if (sauceDiff < bunDiff && sauceDiff < mainDiff) {
-      setCurrent('sauce');
-    } else {
-      setCurrent('main');
-    }
+    setCurrent(closest);
   };
 
   return (
@@ -139,7 +131,6 @@ export const BurgerIngredients = () => {
           Начинки
         </Tab>
       </div>
-
       <div
         className={`${styles.container} custom-scroll`}
         ref={containerRef}
@@ -153,7 +144,6 @@ export const BurgerIngredients = () => {
             <IngredientCard key={item._id} item={item} />
           ))}
         </ul>
-
         <h2 className="text text_type_main-medium mb-6" ref={sauceRef}>
           Соусы
         </h2>
@@ -162,7 +152,6 @@ export const BurgerIngredients = () => {
             <IngredientCard key={item._id} item={item} />
           ))}
         </ul>
-
         <h2 className="text text_type_main-medium mb-6" ref={mainRef}>
           Начинки
         </h2>
