@@ -3,22 +3,33 @@ import {
   Input,
   PasswordInput,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { useEffect, useMemo, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactElement,
+} from 'react';
 import { NavLink, Outlet, useOutletContext } from 'react-router-dom';
 
-import { logout, updateProfile } from '../services/actions/userActions.js';
+import { logout, updateProfile } from '../services/actions/userActions';
+import { useAppDispatch } from '../services/hooks';
+
+import type { RegisterForm, User } from '../types';
 
 import styles from './pages.module.css';
 
-const getErrorMessage = (err) => (err instanceof Error ? err.message : String(err));
+type ProfileLayoutProps = { user: User | null };
+type ProfileContext = { user: User | null };
 
-export const ProfileLayout = ({ user }) => {
-  const dispatch = useDispatch();
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
-  const handleLogout = () => {
-    dispatch(logout());
-  };
+const handlePointerCapture = (): void => undefined;
+
+export const ProfileLayout = ({ user }: ProfileLayoutProps): ReactElement => {
+  const dispatch = useAppDispatch();
 
   return (
     <main className={styles.profilePage}>
@@ -27,9 +38,7 @@ export const ProfileLayout = ({ user }) => {
           to="/profile"
           end
           className={({ isActive }) =>
-            `${styles.profileLink} text text_type_main-medium ${
-              isActive ? styles.profileLinkActive : ''
-            }`
+            `${styles.profileLink} text text_type_main-medium ${isActive ? styles.profileLinkActive : ''}`
           }
         >
           Профиль
@@ -37,9 +46,7 @@ export const ProfileLayout = ({ user }) => {
         <NavLink
           to="/profile/orders"
           className={({ isActive }) =>
-            `${styles.profileLink} text text_type_main-medium ${
-              isActive ? styles.profileLinkActive : ''
-            }`
+            `${styles.profileLink} text text_type_main-medium ${isActive ? styles.profileLinkActive : ''}`
           }
         >
           История заказов
@@ -47,7 +54,9 @@ export const ProfileLayout = ({ user }) => {
         <button
           className={`${styles.logoutButton} text text_type_main-medium`}
           type="button"
-          onClick={handleLogout}
+          onClick={() => {
+            void dispatch(logout());
+          }}
         >
           Выход
         </button>
@@ -60,60 +69,59 @@ export const ProfileLayout = ({ user }) => {
   );
 };
 
-export const ProfileForm = () => {
-  const dispatch = useDispatch();
-  const { user } = useOutletContext();
-  const initialForm = useMemo(
-    () => ({
-      name: user?.name || '',
-      email: user?.email || '',
-      password: '',
-    }),
+export const ProfileForm = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const { user } = useOutletContext<ProfileContext>();
+  const initialForm = useMemo<RegisterForm>(
+    () => ({ name: user?.name ?? '', email: user?.email ?? '', password: '' }),
     [user]
   );
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState<RegisterForm>(initialForm);
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  useEffect(() => {
-    setForm(initialForm);
-  }, [initialForm]);
+  useEffect(() => setForm(initialForm), [initialForm]);
 
   const isChanged =
     form.name !== initialForm.name ||
     form.email !== initialForm.email ||
     form.password !== '';
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = event.currentTarget;
+    if (name === 'name') setForm((current) => ({ ...current, name: value }));
+    if (name === 'email') setForm((current) => ({ ...current, email: value }));
+    if (name === 'password') setForm((current) => ({ ...current, password: value }));
     setError('');
   };
 
-  const handleCancel = () => {
-    setForm(initialForm);
-    setError('');
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     setIsSending(true);
-    dispatch(updateProfile(form))
+    void dispatch(updateProfile(form))
       .unwrap()
-      .then((updatedUser) => {
-        setForm({ name: updatedUser.name, email: updatedUser.email, password: '' });
-      })
-      .catch((err) => setError(getErrorMessage(err)))
+      .then((updatedUser) => setForm({ ...updatedUser, password: '' }))
+      .catch((reason: unknown) => setError(getErrorMessage(reason)))
       .finally(() => setIsSending(false));
   };
 
   return (
     <form className={styles.profileForm} onSubmit={handleSubmit}>
-      <Input name="name" placeholder="Имя" value={form.name} onChange={handleChange} />
+      <Input
+        name="name"
+        placeholder="Имя"
+        value={form.name}
+        onChange={handleChange}
+        onPointerEnterCapture={handlePointerCapture}
+        onPointerLeaveCapture={handlePointerCapture}
+      />
       <Input
         name="email"
         placeholder="Логин"
         value={form.email}
         onChange={handleChange}
+        onPointerEnterCapture={handlePointerCapture}
+        onPointerLeaveCapture={handlePointerCapture}
       />
       <PasswordInput
         name="password"
@@ -128,7 +136,10 @@ export const ProfileForm = () => {
             htmlType="button"
             type="secondary"
             size="medium"
-            onClick={handleCancel}
+            onClick={() => {
+              setForm(initialForm);
+              setError('');
+            }}
           >
             Отмена
           </Button>
@@ -141,7 +152,7 @@ export const ProfileForm = () => {
   );
 };
 
-export const ProfileOrdersPage = () => (
+export const ProfileOrdersPage = (): ReactElement => (
   <section className={styles.development}>
     <h1 className="text text_type_main-medium">История заказов</h1>
     <p className="text text_type_main-default text_color_inactive mt-4">
@@ -150,7 +161,7 @@ export const ProfileOrdersPage = () => (
   </section>
 );
 
-export const FeedPage = () => (
+export const FeedPage = (): ReactElement => (
   <main className={styles.centerPage}>
     <h1 className="text text_type_main-large">Лента заказов</h1>
     <p className="text text_type_main-default text_color_inactive mt-4">
@@ -159,7 +170,7 @@ export const FeedPage = () => (
   </main>
 );
 
-export const NotFoundPage = () => (
+export const NotFoundPage = (): ReactElement => (
   <main className={styles.centerPage}>
     <h1 className="text text_type_digits-large">404</h1>
     <p className="text text_type_main-medium mt-4">Страница не найдена</p>

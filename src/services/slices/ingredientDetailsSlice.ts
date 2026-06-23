@@ -1,14 +1,16 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-const initialState = {
-  ingredient: null,
-};
+import type { Ingredient } from '../../types';
+
+type IngredientDetailsState = { ingredient: Ingredient | null };
+
+const initialState: IngredientDetailsState = { ingredient: null };
 
 const ingredientDetailsSlice = createSlice({
   name: 'ingredientDetails',
   initialState,
   reducers: {
-    setIngredient: (state, action) => {
+    setIngredient: (state, action: PayloadAction<Ingredient>) => {
       state.ingredient = action.payload;
     },
     clearIngredient: (state) => {
@@ -18,5 +20,4 @@ const ingredientDetailsSlice = createSlice({
 });
 
 export const { setIngredient, clearIngredient } = ingredientDetailsSlice.actions;
-
 export default ingredientDetailsSlice.reducer;

@@ -1,33 +1,46 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect, type ReactElement } from 'react';
+import { Route, Routes, useLocation, type Location } from 'react-router-dom';
 
 import {
   ForgotPasswordPage,
   LoginPage,
   RegisterPage,
   ResetPasswordPage,
-} from '../../pages/auth-pages.jsx';
-import { IngredientModal } from '../../pages/ingredient-modal.jsx';
-import { IngredientPage } from '../../pages/ingredient-page.jsx';
+} from '../../pages/auth-pages';
+import { IngredientModal } from '../../pages/ingredient-modal';
+import { IngredientPage } from '../../pages/ingredient-page';
 import {
   FeedPage,
   NotFoundPage,
   ProfileForm,
   ProfileLayout,
   ProfileOrdersPage,
-} from '../../pages/profile-pages.jsx';
-import { ProtectedRoute } from '../../pages/protected-route.jsx';
-import { fetchIngredients } from '../../services/actions/ingredientsActions.js';
-import { checkUserAuth } from '../../services/actions/userActions.js';
-import { AppHeader } from '../app-header/app-header.jsx';
-import { BurgerConstructor } from '../burger-constructor/burger-constructor.jsx';
-import { BurgerIngredients } from '../burger-ingredients/burger-ingredients.jsx';
+} from '../../pages/profile-pages';
+import { ProtectedRoute } from '../../pages/protected-route';
+import { fetchIngredients } from '../../services/actions/ingredientsActions';
+import { checkUserAuth } from '../../services/actions/userActions';
+import { useAppDispatch, useAppSelector } from '../../services/hooks';
+import { AppHeader } from '../app-header/app-header';
+import { BurgerConstructor } from '../burger-constructor/burger-constructor';
+import { BurgerIngredients } from '../burger-ingredients/burger-ingredients';
 
 import styles from './app.module.css';
 
-const HomePage = () => {
-  const { ingredients, isLoading, hasError } = useSelector((state) => state.ingredients);
+type BackgroundState = { background: Location };
+
+const isBackgroundState = (value: unknown): value is BackgroundState => {
+  if (typeof value !== 'object' || value === null || !('background' in value))
+    return false;
+  const background: unknown = value.background;
+  return (
+    typeof background === 'object' && background !== null && 'pathname' in background
+  );
+};
+
+const HomePage = (): ReactElement => {
+  const { ingredients, isLoading, hasError } = useAppSelector(
+    (state) => state.ingredients
+  );
 
   return (
     <>
@@ -35,9 +48,7 @@ const HomePage = () => {
         Соберите бургер
       </h1>
       {isLoading && (
-        <p className="text text_type_main-medium pl-5 mt-20">
-          Загрузка космических ингредиентов...
-        </p>
+        <p className="text text_type_main-medium pl-5 mt-20">Загрузка ингредиентов...</p>
       )}
       {hasError && (
         <p className="text text_type_main-medium pl-5">
@@ -54,18 +65,18 @@ const HomePage = () => {
   );
 };
 
-export const App = () => {
-  const dispatch = useDispatch();
-  const { user, isAuthChecked } = useSelector((state) => state.user);
+export const App = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const { user, isAuthChecked } = useAppSelector((state) => state.user);
   const location = useLocation();
-  const background = location.state?.background;
+  const locationState: unknown = location.state;
+  const background = isBackgroundState(locationState)
+    ? locationState.background
+    : undefined;
 
   useEffect(() => {
-    dispatch(fetchIngredients());
-  }, [dispatch]);
-
-  useEffect(() => {
-    dispatch(checkUserAuth());
+    void dispatch(fetchIngredients());
+    void dispatch(checkUserAuth());
   }, [dispatch]);
 
   const protectedProps = { user, isAuthChecked };
@@ -73,7 +84,7 @@ export const App = () => {
   return (
     <div className={styles.app}>
       <AppHeader />
-      <Routes location={background || location}>
+      <Routes location={background ?? location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/ingredients/:id" element={<IngredientPage />} />
         <Route path="/feed" element={<FeedPage />} />
@@ -122,7 +133,6 @@ export const App = () => {
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-
       {background && (
         <Routes>
           <Route path="/ingredients/:id" element={<IngredientModal />} />
