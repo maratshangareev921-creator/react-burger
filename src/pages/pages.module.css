@@ -1,0 +1,86 @@
+.centerPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 120px;
+  color: var(--text-primary-color);
+}
+
+.formPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 120px;
+  color: var(--text-primary-color);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.links {
+  display: grid;
+  gap: 16px;
+  margin-top: 80px;
+  text-align: center;
+}
+
+.message {
+  margin: 0;
+}
+
+.message a {
+  margin-left: 8px;
+  color: var(--colors-interface-accent);
+  text-decoration: none;
+}
+
+.profilePage {
+  display: grid;
+  grid-template-columns: 320px 480px;
+  gap: 60px;
+  max-width: 1240px;
+  margin: 120px auto 0;
+  color: var(--text-primary-color);
+}
+
+.profileMenu {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileLink,
+.logoutButton {
+  min-height: 64px;
+  padding: 0;
+  color: var(--text-inactive-color);
+  line-height: 64px;
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.profileLinkActive {
+  color: var(--text-primary-color);
+}
+
+.profileForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profileActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.development {
+  padding-top: 16px;
+}
