@@ -3,6 +3,7 @@ import { BASE_URL } from './constants';
 import type {
   Ingredient,
   LoginForm,
+  OrdersResponse,
   RegisterForm,
   ResetPasswordForm,
   UpdateUserForm,
@@ -102,6 +103,9 @@ export const createOrderApi = (ingredientIds: string[]): Promise<OrderResponse> 
     headers: jsonHeaders,
     body: JSON.stringify({ ingredients: ingredientIds }),
   });
+
+export const getOrderByNumber = (number: string): Promise<OrdersResponse> =>
+  request<OrdersResponse>(`/orders/${number}`);
 
 export const registerUser = (form: RegisterForm): Promise<AuthResponse> =>
   request<AuthResponse>('/auth/register', {

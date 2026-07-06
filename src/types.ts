@@ -39,3 +39,23 @@ export type ResetPasswordForm = {
 };
 
 export type UpdateUserForm = Partial<RegisterForm>;
+
+export type OrderStatus = 'created' | 'pending' | 'done';
+
+export type Order = {
+  _id: string;
+  ingredients: string[];
+  status: OrderStatus;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  number: number;
+};
+
+export type OrdersResponse = {
+  success: boolean;
+  orders: Order[];
+  total: number;
+  totalToday: number;
+  message?: string;
+};

@@ -9,6 +9,7 @@ import {
 } from '../../pages/auth-pages';
 import { IngredientModal } from '../../pages/ingredient-modal';
 import { IngredientPage } from '../../pages/ingredient-page';
+import { OrderModal, OrderPage } from '../../pages/order-page';
 import {
   FeedPage,
   NotFoundPage,
@@ -88,6 +89,7 @@ export const App = (): ReactElement => {
         <Route path="/" element={<HomePage />} />
         <Route path="/ingredients/:id" element={<IngredientPage />} />
         <Route path="/feed" element={<FeedPage />} />
+        <Route path="/feed/:number" element={<OrderPage />} />
         <Route
           path="/login"
           element={
@@ -130,12 +132,22 @@ export const App = (): ReactElement => {
         >
           <Route index element={<ProfileForm />} />
           <Route path="orders" element={<ProfileOrdersPage />} />
+          <Route path="orders/:number" element={<OrderPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       {background && (
         <Routes>
           <Route path="/ingredients/:id" element={<IngredientModal />} />
+          <Route path="/feed/:number" element={<OrderModal />} />
+          <Route
+            path="/profile/orders/:number"
+            element={
+              <ProtectedRoute {...protectedProps}>
+                <OrderModal />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       )}
     </div>

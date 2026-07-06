@@ -1,4 +1,4 @@
-import {
+﻿import {
   Button,
   Input,
   PasswordInput,
@@ -13,10 +13,17 @@ import {
 } from 'react';
 import { NavLink, Outlet, useOutletContext } from 'react-router-dom';
 
+import { OrderCard } from '../components/order-card/order-card';
+import {
+  connectFeed,
+  connectProfileOrders,
+  disconnectFeed,
+  disconnectProfileOrders,
+} from '../services/actions/orderFeedActions';
 import { logout, updateProfile } from '../services/actions/userActions';
-import { useAppDispatch } from '../services/hooks';
+import { useAppDispatch, useAppSelector } from '../services/hooks';
 
-import type { RegisterForm, User } from '../types';
+import type { Order, RegisterForm, User } from '../types';
 
 import styles from './pages.module.css';
 
@@ -27,6 +34,14 @@ const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
 const handlePointerCapture = (): void => undefined;
+
+const getAccessToken = (): string =>
+  localStorage.getItem('accessToken')?.replace(/^Bearer\s+/i, '') ?? '';
+
+const chunk = <T,>(items: T[], size: number): T[][] =>
+  Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+    items.slice(index * size, index * size + size)
+  );
 
 export const ProfileLayout = ({ user }: ProfileLayoutProps): ReactElement => {
   const dispatch = useAppDispatch();
@@ -152,23 +167,120 @@ export const ProfileForm = (): ReactElement => {
   );
 };
 
-export const ProfileOrdersPage = (): ReactElement => (
-  <section className={styles.development}>
-    <h1 className="text text_type_main-medium">История заказов</h1>
-    <p className="text text_type_main-default text_color_inactive mt-4">
-      Страница находится в разработке.
-    </p>
-  </section>
-);
+export const ProfileOrdersPage = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const { orders, error } = useAppSelector((state) => state.profileOrders);
+  const ingredients = useAppSelector((state) => state.ingredients.ingredients);
 
-export const FeedPage = (): ReactElement => (
-  <main className={styles.centerPage}>
-    <h1 className="text text_type_main-large">Лента заказов</h1>
-    <p className="text text_type_main-default text_color_inactive mt-4">
-      Страница находится в разработке.
-    </p>
-  </main>
-);
+  useEffect(() => {
+    const token = getAccessToken();
+    if (token) dispatch(connectProfileOrders(token));
+    return (): void => {
+      dispatch(disconnectProfileOrders());
+    };
+  }, [dispatch]);
+
+  return (
+    <section className={styles.profileOrders}>
+      {error && <p className="text text_type_main-default text_color_error">{error}</p>}
+      <div className={`${styles.orderList} custom-scroll`}>
+        {orders.map((order) => (
+          <OrderCard
+            key={order._id}
+            order={order}
+            ingredients={ingredients}
+            showStatus
+            to={`/profile/orders/${order.number}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const OrderNumbers = ({
+  title,
+  orders,
+  done = false,
+}: {
+  title: string;
+  orders: Order[];
+  done?: boolean;
+}): ReactElement => {
+  const columns = chunk(orders.slice(0, 20), 10);
+
+  return (
+    <section>
+      <h2 className="text text_type_main-medium mb-6">{title}</h2>
+      <div className={styles.statusColumns}>
+        {columns.map((column, index) => (
+          <ul className={styles.statusList} key={index}>
+            {column.map((order) => (
+              <li
+                className={`text text_type_digits-default ${
+                  done ? styles.statusDone : ''
+                }`}
+                key={order._id}
+              >
+                {order.number}
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export const FeedPage = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const { orders, total, totalToday, error } = useAppSelector(
+    (state) => state.feedOrders
+  );
+  const ingredients = useAppSelector((state) => state.ingredients.ingredients);
+  const doneOrders = orders.filter((order) => order.status === 'done');
+  const pendingOrders = orders.filter((order) => order.status === 'pending');
+
+  useEffect(() => {
+    dispatch(connectFeed());
+    return (): void => {
+      dispatch(disconnectFeed());
+    };
+  }, [dispatch]);
+
+  return (
+    <main className={styles.feedPage}>
+      <h1 className="text text_type_main-large mb-5">Лента заказов</h1>
+      {error && <p className="text text_type_main-default text_color_error">{error}</p>}
+      <div className={styles.feedLayout}>
+        <section className={`${styles.orderList} custom-scroll`}>
+          {orders.map((order) => (
+            <OrderCard
+              key={order._id}
+              order={order}
+              ingredients={ingredients}
+              to={`/feed/${order.number}`}
+            />
+          ))}
+        </section>
+        <aside className={styles.feedStats}>
+          <div className={styles.statusBoard}>
+            <OrderNumbers title="Готовы:" orders={doneOrders} done />
+            <OrderNumbers title="В работе:" orders={pendingOrders} />
+          </div>
+          <section>
+            <h2 className="text text_type_main-medium">Выполнено за все время:</h2>
+            <p className="text text_type_digits-large">{total}</p>
+          </section>
+          <section>
+            <h2 className="text text_type_main-medium">Выполнено за сегодня:</h2>
+            <p className="text text_type_digits-large">{totalToday}</p>
+          </section>
+        </aside>
+      </div>
+    </main>
+  );
+};
 
 export const NotFoundPage = (): ReactElement => (
   <main className={styles.centerPage}>
