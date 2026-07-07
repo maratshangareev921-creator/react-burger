@@ -36,6 +36,12 @@ export const createSocketMiddleware = ({
   let currentToken = '';
 
   const closeSocket = (): void => {
+    if (socket) {
+      socket.onopen = null;
+      socket.onmessage = null;
+      socket.onerror = null;
+      socket.onclose = null;
+    }
     socket?.close();
     socket = null;
   };
@@ -50,14 +56,17 @@ export const createSocketMiddleware = ({
 
     if (typedAction.type === actions.connect.type) {
       currentToken = typeof typedAction.payload === 'string' ? typedAction.payload : '';
-      socket?.close();
+      closeSocket();
       socket = createConnection(currentToken);
+      const activeSocket = socket;
 
       socket.onopen = (): void => {
+        if (socket !== activeSocket) return;
         store.dispatch(actions.onOpen());
       };
 
       socket.onmessage = (event: MessageEvent<string>): void => {
+        if (socket !== activeSocket) return;
         const data = JSON.parse(event.data) as OrdersResponse;
 
         if (!data.success && data.message === 'Invalid or missing token' && withToken) {
@@ -81,10 +90,12 @@ export const createSocketMiddleware = ({
       };
 
       socket.onerror = (): void => {
+        if (socket !== activeSocket) return;
         store.dispatch(actions.onError('Ошибка WebSocket-соединения'));
       };
 
       socket.onclose = (): void => {
+        if (socket !== activeSocket) return;
         store.dispatch(actions.onClose());
       };
     }

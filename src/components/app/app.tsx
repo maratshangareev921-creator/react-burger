@@ -1,4 +1,4 @@
-import { useEffect, type ReactElement } from 'react';
+import { useEffect, useMemo, type ReactElement } from 'react';
 import { Route, Routes, useLocation, type Location } from 'react-router-dom';
 
 import {
@@ -28,6 +28,12 @@ import { BurgerIngredients } from '../burger-ingredients/burger-ingredients';
 import styles from './app.module.css';
 
 type BackgroundState = { background: Location };
+type StoredBackground = {
+  modalPath: string;
+  background: Pick<Location, 'hash' | 'pathname' | 'search'>;
+};
+
+const MODAL_BACKGROUND_KEY = 'stellar-burgers-modal-background';
 
 const isBackgroundState = (value: unknown): value is BackgroundState => {
   if (typeof value !== 'object' || value === null || !('background' in value))
@@ -36,6 +42,23 @@ const isBackgroundState = (value: unknown): value is BackgroundState => {
   return (
     typeof background === 'object' && background !== null && 'pathname' in background
   );
+};
+
+const isOrderModalPath = (pathname: string): boolean =>
+  /^\/feed\/\d+$/.test(pathname) || /^\/profile\/orders\/\d+$/.test(pathname);
+
+const getStoredBackground = (pathname: string): Location | undefined => {
+  const rawValue = sessionStorage.getItem(MODAL_BACKGROUND_KEY);
+  if (!rawValue) return undefined;
+
+  try {
+    const stored = JSON.parse(rawValue) as StoredBackground;
+    if (stored.modalPath !== pathname) return undefined;
+    return { ...stored.background, key: 'stored-background', state: null };
+  } catch {
+    sessionStorage.removeItem(MODAL_BACKGROUND_KEY);
+    return undefined;
+  }
 };
 
 const HomePage = (): ReactElement => {
@@ -71,14 +94,41 @@ export const App = (): ReactElement => {
   const { user, isAuthChecked } = useAppSelector((state) => state.user);
   const location = useLocation();
   const locationState: unknown = location.state;
-  const background = isBackgroundState(locationState)
+  const stateBackground = isBackgroundState(locationState)
     ? locationState.background
     : undefined;
+  const storedBackground = useMemo(
+    () =>
+      stateBackground || !isOrderModalPath(location.pathname)
+        ? undefined
+        : getStoredBackground(location.pathname),
+    [location.pathname, stateBackground]
+  );
+  const background = stateBackground ?? storedBackground;
 
   useEffect(() => {
     void dispatch(fetchIngredients());
     void dispatch(checkUserAuth());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (stateBackground) {
+      const stored: StoredBackground = {
+        modalPath: location.pathname,
+        background: {
+          pathname: stateBackground.pathname,
+          search: stateBackground.search,
+          hash: stateBackground.hash,
+        },
+      };
+      sessionStorage.setItem(MODAL_BACKGROUND_KEY, JSON.stringify(stored));
+      return;
+    }
+
+    if (!isOrderModalPath(location.pathname)) {
+      sessionStorage.removeItem(MODAL_BACKGROUND_KEY);
+    }
+  }, [location.pathname, stateBackground]);
 
   const protectedProps = { user, isAuthChecked };
 
