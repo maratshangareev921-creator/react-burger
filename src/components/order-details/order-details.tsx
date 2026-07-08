@@ -1,9 +1,11 @@
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../../services/hooks';
+
+import type { ReactElement } from 'react';
 
 import styles from './order-details.module.css';
 
-export const OrderDetails = () => {
-  const orderNumber = useSelector((state) => state.order.orderNumber);
+export const OrderDetails = (): ReactElement => {
+  const orderNumber = useAppSelector((state) => state.order.orderNumber);
 
   return (
     <div className={`${styles.container} mt-4 mb-30`}>

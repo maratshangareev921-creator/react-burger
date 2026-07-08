@@ -8,7 +8,16 @@ import {
   updateProfile,
 } from '../actions/userActions';
 
-const initialState = {
+import type { User } from '../../types';
+
+type UserState = {
+  user: User | null;
+  isAuthChecked: boolean;
+  isLoading: boolean;
+  error: string | null;
+};
+
+const initialState: UserState = {
   user: null,
   isAuthChecked: false,
   isLoading: false,
@@ -38,7 +47,7 @@ const userSlice = createSlice({
         state.user = null;
         state.isAuthChecked = true;
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload ?? 'Ошибка проверки пользователя';
       })
       .addCase(login.pending, (state) => {
         state.isLoading = true;
@@ -51,7 +60,7 @@ const userSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload ?? 'Ошибка входа';
       })
       .addCase(register.pending, (state) => {
         state.isLoading = true;
@@ -64,7 +73,7 @@ const userSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload ?? 'Ошибка регистрации';
       })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
@@ -81,7 +90,7 @@ const userSlice = createSlice({
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload ?? 'Ошибка обновления профиля';
       });
   },
 });

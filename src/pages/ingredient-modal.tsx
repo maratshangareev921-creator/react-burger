@@ -1,14 +1,14 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useMemo, type ReactElement } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { IngredientDetails } from '../components/ingredient-details/ingredient-details.jsx';
-import { Modal } from '../components/modal/modal.jsx';
+import { IngredientDetails } from '../components/ingredient-details/ingredient-details';
+import { Modal } from '../components/modal/modal';
+import { useAppSelector } from '../services/hooks';
 
-export const IngredientModal = () => {
-  const { id } = useParams();
+export const IngredientModal = (): ReactElement => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { ingredients } = useSelector((state) => state.ingredients);
+  const ingredients = useAppSelector((state) => state.ingredients.ingredients);
   const ingredient = useMemo(
     () => ingredients.find((item) => item._id === id),
     [ingredients, id]

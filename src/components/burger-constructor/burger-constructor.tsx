@@ -1,13 +1,13 @@
 import {
+  Button,
   ConstructorElement,
   CurrencyIcon,
-  Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { useDrop } from 'react-dnd';
-import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { createOrder } from '../../services/actions/orderActions';
+import { useAppDispatch, useAppSelector } from '../../services/hooks';
 import {
   addConstructorItem,
   clearConstructor,
@@ -18,52 +18,47 @@ import { Modal } from '../modal/modal';
 import { OrderDetails } from '../order-details/order-details';
 import { ConstructorItem } from './constructor-item';
 
+import type { ReactElement } from 'react';
+
+import type { Ingredient } from '../../types';
+
 import styles from './burger-constructor.module.css';
 
-export const BurgerConstructor = () => {
-  const dispatch = useDispatch();
+export const BurgerConstructor = (): ReactElement => {
+  const dispatch = useAppDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const { orderNumber, isLoading, error } = useSelector((state) => state.order);
-  const { bun, ingredients: mainIngredients } = useSelector(
+  const { orderNumber, isLoading, error } = useAppSelector((state) => state.order);
+  const { bun, ingredients: mainIngredients } = useAppSelector(
     (state) => state.burgerConstructor
   );
-  const totalPrice = useSelector(selectTotalPrice);
+  const totalPrice = useAppSelector(selectTotalPrice);
 
-  const [, dropTargetRef] = useDrop({
+  const [, dropTargetRef] = useDrop<Ingredient>({
     accept: 'ingredient',
-    drop(item) {
+    drop: (item) => {
       dispatch(addConstructorItem(item));
     },
   });
 
-  const handleCheckout = () => {
+  const handleCheckout = (): void => {
     if (!bun) return;
-
     if (!localStorage.getItem('accessToken')) {
       navigate('/login', { state: { from: location } });
       return;
     }
 
-    const orderIngredients = [
-      bun._id,
-      ...mainIngredients.map((item) => item._id),
-      bun._id,
-    ];
-    dispatch(createOrder(orderIngredients)).then((action) => {
-      if (createOrder.fulfilled.match(action)) {
-        dispatch(clearConstructor());
-      }
+    const ids = [bun._id, ...mainIngredients.map((item) => item._id), bun._id];
+    void dispatch(createOrder(ids)).then((action) => {
+      if (createOrder.fulfilled.match(action)) dispatch(clearConstructor());
     });
-  };
-
-  const handleCloseModal = () => {
-    dispatch(clearOrder());
   };
 
   return (
     <section
-      ref={dropTargetRef}
+      ref={(node) => {
+        dropTargetRef(node);
+      }}
       className={`${styles.burger_constructor} mt-25`}
       style={{ minHeight: '400px' }}
     >
@@ -71,7 +66,7 @@ export const BurgerConstructor = () => {
         <div className="ml-8 mb-4">
           <ConstructorElement
             type="top"
-            isLocked={true}
+            isLocked
             text={`${bun.name} (верх)`}
             price={bun.price}
             thumbnail={bun.image}
@@ -103,7 +98,7 @@ export const BurgerConstructor = () => {
         <div className="ml-8 mt-4">
           <ConstructorElement
             type="bottom"
-            isLocked={true}
+            isLocked
             text={`${bun.name} (низ)`}
             price={bun.price}
             thumbnail={bun.image}
@@ -138,12 +133,11 @@ export const BurgerConstructor = () => {
           className="text text_type_main-default mt-4 text_color_error"
           style={{ textAlign: 'right' }}
         >
-          Произошла ошибка при создании заказа: {error}
+          Ошибка создания заказа: {error}
         </p>
       )}
-
-      {orderNumber && (
-        <Modal onClose={handleCloseModal}>
+      {orderNumber !== null && (
+        <Modal onClose={() => dispatch(clearOrder())}>
           <OrderDetails />
         </Modal>
       )}

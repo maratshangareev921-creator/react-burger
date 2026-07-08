@@ -2,11 +2,13 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { createOrder } from '../actions/orderActions';
 
-const initialState = {
-  orderNumber: null,
-  isLoading: false,
-  error: null,
+type OrderState = {
+  orderNumber: number | null;
+  isLoading: boolean;
+  error: string | null;
 };
+
+const initialState: OrderState = { orderNumber: null, isLoading: false, error: null };
 
 const orderSlice = createSlice({
   name: 'order',
@@ -29,7 +31,7 @@ const orderSlice = createSlice({
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.payload ?? 'Ошибка при отправке заказа';
       });
   },
 });

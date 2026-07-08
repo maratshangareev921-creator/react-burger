@@ -4,8 +4,13 @@ import {
   Input,
   PasswordInput,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import {
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -13,44 +18,59 @@ import {
   login,
   register,
   resetPasswordRequest,
-} from '../services/actions/userActions.js';
+} from '../services/actions/userActions';
+import { useAppDispatch } from '../services/hooks';
+
+import type { LoginForm, RegisterForm, ResetPasswordForm } from '../types';
 
 import styles from './pages.module.css';
 
-const AuthMessage = ({ children }) => (
+type AuthMessageProps = { children: ReactNode };
+type ErrorTextProps = { error: string };
+
+const AuthMessage = ({ children }: AuthMessageProps): ReactElement => (
   <p className={`${styles.message} text text_type_main-default text_color_inactive`}>
     {children}
   </p>
 );
 
-const ErrorText = ({ error }) =>
+const ErrorText = ({ error }: ErrorTextProps): ReactElement | null =>
   error ? <p className="text text_type_main-default text_color_error">{error}</p> : null;
 
-const getErrorMessage = (err) => (err instanceof Error ? err.message : String(err));
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
-export const LoginPage = () => {
-  const dispatch = useDispatch();
-  const [form, setForm] = useState({ email: '', password: '' });
+const handlePointerCapture = (): void => undefined;
+
+const getPreviousPath = (state: unknown): string => {
+  if (typeof state !== 'object' || state === null || !('from' in state)) return '/';
+  const from: unknown = state.from;
+  if (typeof from !== 'object' || from === null || !('pathname' in from)) return '/';
+  return typeof from.pathname === 'string' ? from.pathname : '/';
+};
+
+export const LoginPage = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const [form, setForm] = useState<LoginForm>({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = event.currentTarget;
+    if (name === 'email') setForm((current) => ({ ...current, email: value }));
+    if (name === 'password') setForm((current) => ({ ...current, password: value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     setIsSending(true);
-    dispatch(login(form))
+    void dispatch(login(form))
       .unwrap()
-      .then(() => {
-        navigate(from, { replace: true });
-      })
-      .catch((err) => setError(getErrorMessage(err)))
+      .then(() => navigate(getPreviousPath(location.state), { replace: true }))
+      .catch((reason: unknown) => setError(getErrorMessage(reason)))
       .finally(() => setIsSending(false));
   };
 
@@ -77,23 +97,26 @@ export const LoginPage = () => {
   );
 };
 
-export const RegisterPage = () => {
-  const dispatch = useDispatch();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+export const RegisterPage = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const [form, setForm] = useState<RegisterForm>({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = event.currentTarget;
+    if (name === 'name') setForm((current) => ({ ...current, name: value }));
+    if (name === 'email') setForm((current) => ({ ...current, email: value }));
+    if (name === 'password') setForm((current) => ({ ...current, password: value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     setIsSending(true);
-    dispatch(register(form))
+    void dispatch(register(form))
       .unwrap()
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch((reason: unknown) => setError(getErrorMessage(reason)))
       .finally(() => setIsSending(false));
   };
 
@@ -101,7 +124,14 @@ export const RegisterPage = () => {
     <main className={styles.formPage}>
       <h1 className="text text_type_main-medium mb-6">Регистрация</h1>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <Input name="name" placeholder="Имя" value={form.name} onChange={handleChange} />
+        <Input
+          name="name"
+          placeholder="Имя"
+          value={form.name}
+          onChange={handleChange}
+          onPointerEnterCapture={handlePointerCapture}
+          onPointerLeaveCapture={handlePointerCapture}
+        />
         <EmailInput name="email" value={form.email} onChange={handleChange} />
         <PasswordInput name="password" value={form.password} onChange={handleChange} />
         <ErrorText error={error} />
@@ -118,23 +148,23 @@ export const RegisterPage = () => {
   );
 };
 
-export const ForgotPasswordPage = () => {
-  const dispatch = useDispatch();
+export const ForgotPasswordPage = (): ReactElement => {
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     setIsSending(true);
-    dispatch(forgotPasswordRequest(email))
+    void dispatch(forgotPasswordRequest(email))
       .unwrap()
       .then(() => {
         localStorage.setItem('resetPasswordAllowed', 'true');
         navigate('/reset-password');
       })
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch((reason: unknown) => setError(getErrorMessage(reason)))
       .finally(() => setIsSending(false));
   };
 
@@ -146,8 +176,8 @@ export const ForgotPasswordPage = () => {
           name="email"
           placeholder="Укажите e-mail"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
+          onChange={(event) => {
+            setEmail(event.currentTarget.value);
             setError('');
           }}
         />
@@ -165,9 +195,9 @@ export const ForgotPasswordPage = () => {
   );
 };
 
-export const ResetPasswordPage = () => {
-  const dispatch = useDispatch();
-  const [form, setForm] = useState({ password: '', token: '' });
+export const ResetPasswordPage = (): ReactElement => {
+  const dispatch = useAppDispatch();
+  const [form, setForm] = useState<ResetPasswordForm>({ password: '', token: '' });
   const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
@@ -176,21 +206,23 @@ export const ResetPasswordPage = () => {
     return <Navigate to="/forgot-password" replace />;
   }
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = event.currentTarget;
+    if (name === 'password') setForm((current) => ({ ...current, password: value }));
+    if (name === 'token') setForm((current) => ({ ...current, token: value }));
     setError('');
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
     setIsSending(true);
-    dispatch(resetPasswordRequest(form))
+    void dispatch(resetPasswordRequest(form))
       .unwrap()
       .then(() => {
         localStorage.removeItem('resetPasswordAllowed');
         navigate('/login', { replace: true });
       })
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch((reason: unknown) => setError(getErrorMessage(reason)))
       .finally(() => setIsSending(false));
   };
 
@@ -209,6 +241,8 @@ export const ResetPasswordPage = () => {
           placeholder="Введите код из письма"
           value={form.token}
           onChange={handleChange}
+          onPointerEnterCapture={handlePointerCapture}
+          onPointerLeaveCapture={handlePointerCapture}
         />
         <ErrorText error={error} />
         <Button htmlType="submit" type="primary" size="medium" disabled={isSending}>
