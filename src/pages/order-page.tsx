@@ -1,14 +1,23 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+﻿import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Modal } from '../components/modal/modal';
 import { OrderInfo } from '../components/order-info/order-info';
-import { useAppSelector } from '../services/hooks';
+import {
+  connectFeed,
+  connectProfileOrders,
+  disconnectFeed,
+  disconnectProfileOrders,
+} from '../services/actions/orderFeedActions';
+import { useAppDispatch, useAppSelector } from '../services/hooks';
 import { getOrderByNumber } from '../utils/burger-api';
 
 import type { Order } from '../types';
 
 import styles from './pages.module.css';
+
+const getAccessToken = (): string =>
+  localStorage.getItem('accessToken')?.replace(/^Bearer\s+/i, '') ?? '';
 
 const useOrder = (): {
   order: Order | null;
@@ -16,6 +25,8 @@ const useOrder = (): {
   hasError: boolean;
 } => {
   const { number } = useParams<{ number: string }>();
+  const dispatch = useAppDispatch();
+  const location = useLocation();
   const feedOrders = useAppSelector((state) => state.feedOrders.orders);
   const profileOrders = useAppSelector((state) => state.profileOrders.orders);
   const [loadedOrder, setLoadedOrder] = useState<Order | null>(null);
@@ -37,11 +48,34 @@ const useOrder = (): {
     setHasError(false);
     void getOrderByNumber(number)
       .then((response) => {
-        setLoadedOrder(response.orders[0] ?? null);
+        const order = response.orders[0] ?? null;
+        setLoadedOrder(order);
+        setHasError(!order);
       })
       .catch(() => setHasError(true))
       .finally(() => setIsLoading(false));
   }, [number, socketOrder]);
+
+  useEffect(() => {
+    if (socketOrder) return undefined;
+
+    if (location.pathname.startsWith('/feed/')) {
+      dispatch(connectFeed());
+      return (): void => {
+        dispatch(disconnectFeed());
+      };
+    }
+
+    if (location.pathname.startsWith('/profile/orders/')) {
+      const token = getAccessToken();
+      if (token) dispatch(connectProfileOrders(token));
+      return (): void => {
+        dispatch(disconnectProfileOrders());
+      };
+    }
+
+    return undefined;
+  }, [dispatch, location.pathname, socketOrder]);
 
   return { order: socketOrder ?? loadedOrder, isLoading, hasError };
 };
@@ -50,9 +84,12 @@ const OrderContent = (): ReactElement => {
   const ingredients = useAppSelector((state) => state.ingredients.ingredients);
   const { order, isLoading, hasError } = useOrder();
 
-  if (hasError) return <Navigate to="*" replace />;
   if (isLoading || !order) {
-    return <p className="text text_type_main-medium p-10">Загрузка заказа...</p>;
+    return (
+      <p className="text text_type_main-medium p-10">
+        {hasError ? 'Не удалось загрузить заказ' : 'Загрузка заказа...'}
+      </p>
+    );
   }
 
   return <OrderInfo order={order} ingredients={ingredients} />;
