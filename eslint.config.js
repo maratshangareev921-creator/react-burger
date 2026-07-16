@@ -59,7 +59,7 @@ export default defineConfig([
     rules: {
       'import/order': 'off',
       'css-modules/no-undef-class': 'error',
-      'css-modules/no-unused-class': 'warn',
+      'css-modules/no-unused-class': 'off',
       'perfectionist/sort-imports': [
         'error',
         {

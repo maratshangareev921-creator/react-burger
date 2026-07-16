@@ -55,6 +55,7 @@ export const ConstructorItem = ({ item, index }: ConstructorItemProps): ReactEle
     <div
       ref={ref}
       className={`${styles.element_wrapper} mb-4 ml-4`}
+      data-testid={`constructor-item-${item._id}`}
       style={{ opacity: isDragging ? 0 : 1 }}
     >
       <div className={`${styles.drag_handle} mr-2`}>

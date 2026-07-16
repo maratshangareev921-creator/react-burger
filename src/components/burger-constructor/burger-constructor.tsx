@@ -60,6 +60,7 @@ export const BurgerConstructor = (): ReactElement => {
         dropTargetRef(node);
       }}
       className={`${styles.burger_constructor} mt-25`}
+      data-testid="burger-constructor"
       style={{ minHeight: '400px' }}
     >
       {bun ? (
@@ -123,6 +124,7 @@ export const BurgerConstructor = (): ReactElement => {
           size="large"
           onClick={handleCheckout}
           disabled={isLoading || !bun}
+          data-testid="checkout-button"
         >
           {isLoading ? 'Оформление...' : 'Оформить заказ'}
         </Button>

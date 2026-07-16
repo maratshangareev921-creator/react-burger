@@ -1,4 +1,4 @@
-import { CloseIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+﻿import { CloseIcon } from '@ya.praktikum/react-developer-burger-ui-components';
 import {
   useEffect,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -32,13 +32,14 @@ export const Modal = ({ title = '', children, onClose }: ModalProps): ReactEleme
   return createPortal(
     <>
       <ModalOverlay onClick={onClose} />
-      <div className={styles.modal} onKeyDown={stopPropagation}>
+      <div className={styles.modal} data-testid="modal" onKeyDown={stopPropagation}>
         <div className={`${styles.header} mt-10 ml-10 mr-10`}>
           <h3 className="text text_type_main-large">{title}</h3>
           <button
             className={styles.close_button}
             type="button"
             onClick={onClose}
+            data-testid="modal-close-button"
             aria-label="Закрыть"
           >
             <CloseIcon type="primary" />

@@ -16,7 +16,7 @@ if (!rootElement) throw new Error('Контейнер #root не найден');
 createRoot(rootElement).render(
   <StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <DndProvider backend={HTML5Backend}>
           <App />
         </DndProvider>

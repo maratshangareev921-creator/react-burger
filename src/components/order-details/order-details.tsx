@@ -8,7 +8,7 @@ export const OrderDetails = (): ReactElement => {
   const orderNumber = useAppSelector((state) => state.order.orderNumber);
 
   return (
-    <div className={`${styles.container} mt-4 mb-30`}>
+    <div className={`${styles.container} mt-4 mb-30`} data-testid="order-details">
       <h2 className={`${styles.order_id} text text_type_digits-large mb-8`}>
         {orderNumber}
       </h2>

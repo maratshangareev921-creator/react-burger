@@ -38,12 +38,14 @@ const IngredientCard = ({ item }: IngredientCardProps): ReactElement => {
         dragRef(node);
       }}
       className={styles.card}
+      data-testid={`ingredient-card-${item._id}`}
       style={{ opacity: isDragging ? 0.4 : 1, cursor: 'grab' }}
     >
       <Link
         to={`/ingredients/${item._id}`}
         state={{ background: location }}
         className={styles.card_link}
+        data-testid={`ingredient-link-${item._id}`}
       >
         {count > 0 && <Counter count={count} size="default" />}
         <img src={item.image} alt={item.name} className="ml-4 mr-4" />
