@@ -4,7 +4,7 @@ import type { Ingredient } from '../../types';
 
 type IngredientDetailsState = { ingredient: Ingredient | null };
 
-const initialState: IngredientDetailsState = { ingredient: null };
+export const initialState: IngredientDetailsState = { ingredient: null };
 
 const ingredientDetailsSlice = createSlice({
   name: 'ingredientDetails',

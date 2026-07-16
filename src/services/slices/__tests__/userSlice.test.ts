@@ -7,17 +7,12 @@ import {
   register,
   updateProfile,
 } from '../../actions/userActions';
-import reducer, { clearUserError } from '../userSlice';
+import reducer, { clearUserError, initialState } from '../userSlice';
 import { user } from './fixtures';
 
 describe('userSlice', () => {
   it('returns initial state', () => {
-    expect(reducer(undefined, { type: 'unknown' })).toEqual({
-      user: null,
-      isAuthChecked: false,
-      isLoading: false,
-      error: null,
-    });
+    expect(reducer(undefined, { type: 'unknown' })).toEqual(initialState);
   });
 
   it('handles auth check lifecycle', () => {
@@ -31,8 +26,8 @@ describe('userSlice', () => {
     ).toEqual({
       user,
       isAuthChecked: true,
-      isLoading: false,
-      error: null,
+      isLoading: initialState.isLoading,
+      error: initialState.error,
     });
 
     expect(
@@ -41,9 +36,9 @@ describe('userSlice', () => {
         payload: 'Auth error',
       })
     ).toEqual({
-      user: null,
+      user: initialState.user,
       isAuthChecked: true,
-      isLoading: false,
+      isLoading: initialState.isLoading,
       error: 'Auth error',
     });
   });
@@ -57,8 +52,8 @@ describe('userSlice', () => {
     expect(reducer(undefined, { type: login.fulfilled.type, payload: user })).toEqual({
       user,
       isAuthChecked: true,
-      isLoading: false,
-      error: null,
+      isLoading: initialState.isLoading,
+      error: initialState.error,
     });
 
     expect(
@@ -66,7 +61,7 @@ describe('userSlice', () => {
     ).toMatchObject({
       user,
       isAuthChecked: true,
-      isLoading: false,
+      isLoading: initialState.isLoading,
     });
 
     expect(
@@ -77,14 +72,14 @@ describe('userSlice', () => {
   it('handles logout and profile update', () => {
     expect(
       reducer(
-        { user, isAuthChecked: true, isLoading: false, error: null },
+        { ...initialState, user, isAuthChecked: true },
         { type: logout.fulfilled.type, payload: null }
       )
     ).toEqual({
-      user: null,
+      user: initialState.user,
       isAuthChecked: true,
-      isLoading: false,
-      error: null,
+      isLoading: initialState.isLoading,
+      error: initialState.error,
     });
 
     expect(
@@ -97,10 +92,8 @@ describe('userSlice', () => {
 
   it('clears user error', () => {
     expect(
-      reducer(
-        { user: null, isAuthChecked: true, isLoading: false, error: 'Error' },
-        clearUserError()
-      ).error
-    ).toBeNull();
+      reducer({ ...initialState, isAuthChecked: true, error: 'Error' }, clearUserError())
+        .error
+    ).toBe(initialState.error);
   });
 });

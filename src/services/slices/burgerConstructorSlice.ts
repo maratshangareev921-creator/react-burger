@@ -10,7 +10,7 @@ type BurgerConstructorState = {
 
 type MovePayload = { dragIndex: number; hoverIndex: number };
 
-const initialState: BurgerConstructorState = { bun: null, ingredients: [] };
+export const initialState: BurgerConstructorState = { bun: null, ingredients: [] };
 
 const burgerConstructorSlice = createSlice({
   name: 'burgerConstructor',

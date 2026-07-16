@@ -1,48 +1,44 @@
 import { describe, expect, it } from 'vitest';
 
 import { fetchIngredients } from '../../actions/ingredientsActions';
-import reducer from '../ingredientsSlice';
+import reducer, { initialState } from '../ingredientsSlice';
 import { bun, main } from './fixtures';
 
 describe('ingredientsSlice', () => {
   it('returns initial state', () => {
-    expect(reducer(undefined, { type: 'unknown' })).toEqual({
-      ingredients: [],
-      isLoading: false,
-      hasError: false,
-    });
+    expect(reducer(undefined, { type: 'unknown' })).toEqual(initialState);
   });
 
   it('handles fetch pending', () => {
     expect(reducer(undefined, { type: fetchIngredients.pending.type })).toEqual({
-      ingredients: [],
+      ingredients: initialState.ingredients,
       isLoading: true,
-      hasError: false,
+      hasError: initialState.hasError,
     });
   });
 
   it('handles fetch fulfilled', () => {
     expect(
       reducer(
-        { ingredients: [], isLoading: true, hasError: false },
+        { ...initialState, isLoading: true },
         { type: fetchIngredients.fulfilled.type, payload: [bun, main] }
       )
     ).toEqual({
       ingredients: [bun, main],
-      isLoading: false,
-      hasError: false,
+      isLoading: initialState.isLoading,
+      hasError: initialState.hasError,
     });
   });
 
   it('handles fetch rejected', () => {
     expect(
       reducer(
-        { ingredients: [], isLoading: true, hasError: false },
+        { ...initialState, isLoading: true },
         { type: fetchIngredients.rejected.type }
       )
     ).toEqual({
-      ingredients: [],
-      isLoading: false,
+      ingredients: initialState.ingredients,
+      isLoading: initialState.isLoading,
       hasError: true,
     });
   });

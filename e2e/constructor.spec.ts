@@ -1,52 +1,57 @@
 import { expect, test } from '@playwright/test';
 
-const bunId = 'bun-1';
-const mainId = 'main-1';
+import { ConstructorPage } from './pages/constructor-page';
+
+const HAR_PATH = 'e2e/fixtures/burger-api.har';
+const API_URL_PATTERN = '**/api/**';
+const BUN_ID = 'bun-1';
+const MAIN_ID = 'main-1';
+const BUN_NAME = 'Краторная булка';
+const MAIN_NAME = 'Биокотлета';
+const BUN_CALORIES = '420';
+const ORDER_NUMBER = '12345';
 
 test.beforeEach(async ({ page }) => {
-  await page.routeFromHAR('e2e/fixtures/burger-api.har', {
-    url: '**/api/**',
+  await page.routeFromHAR(HAR_PATH, {
+    url: API_URL_PATTERN,
   });
 });
 
 test('drags ingredients to constructor', async ({ page }) => {
-  await page.goto('/');
+  const constructorPage = new ConstructorPage(page);
 
-  await page.getByTestId(`ingredient-card-${bunId}`).dragTo(page.getByTestId('burger-constructor'));
-  await page.getByTestId(`ingredient-card-${mainId}`).dragTo(page.getByTestId('burger-constructor'));
+  await constructorPage.open();
+  await constructorPage.dragIngredientToConstructor(BUN_ID);
+  await constructorPage.dragIngredientToConstructor(MAIN_ID);
 
-  await expect(page.getByText('Краторная булка').first()).toBeVisible();
-  await expect(page.getByTestId(`constructor-item-${mainId}`)).toContainText('Биокотлета');
+  await expect(page.getByText(BUN_NAME).first()).toBeVisible();
+  await expect(constructorPage.constructorItem(MAIN_ID)).toContainText(MAIN_NAME);
 });
 
 test('opens ingredient details modal and closes it', async ({ page }) => {
-  await page.goto('/');
+  const constructorPage = new ConstructorPage(page);
 
-  await page.getByTestId(`ingredient-link-${bunId}`).click();
+  await constructorPage.open();
+  await constructorPage.openIngredientDetails(BUN_ID);
 
-  await expect(page.getByTestId('modal')).toBeVisible();
-  await expect(page.getByTestId('ingredient-details')).toContainText('Краторная булка');
-  await expect(page.getByTestId('ingredient-details')).toContainText('420');
+  await expect(constructorPage.modal).toBeVisible();
+  await expect(constructorPage.ingredientDetails).toContainText(BUN_NAME);
+  await expect(constructorPage.ingredientDetails).toContainText(BUN_CALORIES);
 
-  await page.getByTestId('modal-close-button').click();
-  await expect(page.getByTestId('modal')).toBeHidden();
+  await constructorPage.closeModal();
 });
 
 test('creates order and closes order modal', async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('accessToken', 'Bearer test-access-token');
-    localStorage.setItem('refreshToken', 'test-refresh-token');
-  });
+  const constructorPage = new ConstructorPage(page);
 
-  await page.goto('/');
+  await constructorPage.authorize();
+  await constructorPage.open();
+  await constructorPage.dragIngredientToConstructor(BUN_ID);
+  await constructorPage.dragIngredientToConstructor(MAIN_ID);
+  await constructorPage.createOrder();
 
-  await page.getByTestId(`ingredient-card-${bunId}`).dragTo(page.getByTestId('burger-constructor'));
-  await page.getByTestId(`ingredient-card-${mainId}`).dragTo(page.getByTestId('burger-constructor'));
-  await page.getByTestId('checkout-button').click();
+  await expect(constructorPage.modal).toBeVisible();
+  await expect(constructorPage.orderDetails).toContainText(ORDER_NUMBER);
 
-  await expect(page.getByTestId('modal')).toBeVisible();
-  await expect(page.getByTestId('order-details')).toContainText('12345');
-
-  await page.getByTestId('modal-close-button').click();
-  await expect(page.getByTestId('modal')).toBeHidden();
+  await constructorPage.closeModal();
 });

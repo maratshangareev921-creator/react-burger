@@ -5,8 +5,10 @@ import feedReducer, {
   feedError,
   feedMessage,
   feedOpen,
+  initialState as feedInitialState,
 } from '../feedOrdersSlice';
 import profileReducer, {
+  initialState as profileInitialState,
   profileOrdersClose,
   profileOrdersError,
   profileOrdersMessage,
@@ -23,13 +25,7 @@ const response = {
 
 describe('feedOrdersSlice', () => {
   it('returns initial state', () => {
-    expect(feedReducer(undefined, { type: 'unknown' })).toEqual({
-      orders: [],
-      total: 0,
-      totalToday: 0,
-      isConnected: false,
-      error: null,
-    });
+    expect(feedReducer(undefined, { type: 'unknown' })).toEqual(feedInitialState);
   });
 
   it('handles socket lifecycle and messages', () => {
@@ -47,8 +43,8 @@ describe('feedOrdersSlice', () => {
       orders: [order],
       total: 10,
       totalToday: 2,
-      isConnected: false,
-      error: null,
+      isConnected: feedInitialState.isConnected,
+      error: feedInitialState.error,
     });
 
     expect(feedReducer(opened, feedClose()).isConnected).toBe(false);
@@ -57,13 +53,7 @@ describe('feedOrdersSlice', () => {
 
 describe('profileOrdersSlice', () => {
   it('returns initial state', () => {
-    expect(profileReducer(undefined, { type: 'unknown' })).toEqual({
-      orders: [],
-      total: 0,
-      totalToday: 0,
-      isConnected: false,
-      error: null,
-    });
+    expect(profileReducer(undefined, { type: 'unknown' })).toEqual(profileInitialState);
   });
 
   it('handles socket lifecycle and messages', () => {
@@ -81,8 +71,8 @@ describe('profileOrdersSlice', () => {
       orders: [order],
       total: 10,
       totalToday: 2,
-      isConnected: false,
-      error: null,
+      isConnected: profileInitialState.isConnected,
+      error: profileInitialState.error,
     });
 
     expect(profileReducer(opened, profileOrdersClose()).isConnected).toBe(false);

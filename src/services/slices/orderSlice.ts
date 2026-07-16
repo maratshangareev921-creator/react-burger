@@ -8,7 +8,11 @@ type OrderState = {
   error: string | null;
 };
 
-const initialState: OrderState = { orderNumber: null, isLoading: false, error: null };
+export const initialState: OrderState = {
+  orderNumber: null,
+  isLoading: false,
+  error: null,
+};
 
 const orderSlice = createSlice({
   name: 'order',

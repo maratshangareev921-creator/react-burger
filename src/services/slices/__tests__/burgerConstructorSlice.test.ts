@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import reducer, {
   addConstructorItem,
   clearConstructor,
+  initialState,
   moveConstructorItem,
   removeConstructorItem,
   selectTotalPrice,
@@ -13,10 +14,7 @@ import type { RootState } from '../../store';
 
 describe('burgerConstructorSlice', () => {
   it('returns initial state', () => {
-    expect(reducer(undefined, { type: 'unknown' })).toEqual({
-      bun: null,
-      ingredients: [],
-    });
+    expect(reducer(undefined, { type: 'unknown' })).toEqual(initialState);
   });
 
   it('adds bun as selected bun', () => {
@@ -24,7 +22,7 @@ describe('burgerConstructorSlice', () => {
 
     expect(reducer(undefined, addConstructorItem(bun))).toEqual({
       bun: { ...bun, constructorId: 'bun-constructor-id' },
-      ingredients: [],
+      ingredients: initialState.ingredients,
     });
 
     vi.unstubAllGlobals();
@@ -34,7 +32,7 @@ describe('burgerConstructorSlice', () => {
     vi.stubGlobal('crypto', { randomUUID: () => 'main-constructor-id' });
 
     expect(reducer(undefined, addConstructorItem(main))).toEqual({
-      bun: null,
+      bun: initialState.bun,
       ingredients: [{ ...main, constructorId: 'main-constructor-id' }],
     });
 
@@ -73,8 +71,7 @@ describe('burgerConstructorSlice', () => {
     };
 
     expect(reducer(state, clearConstructor())).toEqual({
-      bun: null,
-      ingredients: [],
+      ...initialState,
     });
   });
 
