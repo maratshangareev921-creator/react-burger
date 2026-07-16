@@ -40,7 +40,7 @@
 
 .profilePage {
   display: grid;
-  grid-template-columns: 320px 480px;
+  grid-template-columns: 320px minmax(480px, 860px);
   gap: 60px;
   max-width: 1240px;
   margin: 120px auto 0;
@@ -83,4 +83,59 @@
 
 .development {
   padding-top: 16px;
+}
+
+.feedPage {
+  max-width: 1240px;
+  margin: 40px auto 0;
+  color: var(--text-primary-color);
+}
+
+.feedLayout {
+  display: grid;
+  grid-template-columns: 608px 1fr;
+  gap: 60px;
+}
+
+.orderList {
+  display: grid;
+  gap: 16px;
+  max-height: calc(100vh - 188px);
+  padding: 0 8px 0 0;
+  overflow-y: auto;
+}
+
+.profileOrders {
+  min-width: 0;
+}
+
+.feedStats {
+  display: grid;
+  align-content: start;
+  gap: 60px;
+}
+
+.statusBoard,
+.statusColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px;
+}
+
+.statusList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.statusDone {
+  color: var(--colors-interface-success);
+}
+
+.orderPage {
+  display: flex;
+  justify-content: center;
+  padding-top: 120px;
 }

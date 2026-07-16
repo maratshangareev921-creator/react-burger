@@ -4,7 +4,7 @@ import sassDts from 'vite-plugin-sass-dts';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     readableClassnames(),
@@ -14,14 +14,16 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
-  base: '',
+  base: command === 'build' ? '/react-burger/' : '/',
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./vitest-setup.js'],
+    setupFiles: ['./vitest-setup.ts'],
+    exclude: ['e2e/**', 'node_modules/**'],
+    passWithNoTests: true,
   },
   server: {
-    open: true,
+    open: false,
     proxy: {
       '/api': {
         target: 'https://new-stellarburgers.education-services.ru',
@@ -31,4 +33,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
